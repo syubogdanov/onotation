@@ -1,0 +1,2 @@
+class Bitset:
+    """The bitset."""
