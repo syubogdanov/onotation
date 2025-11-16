@@ -1,8 +1,8 @@
 from onotation.internal.avl_tree import AVLTree
+from onotation.internal.b_tree import BTree
 from onotation.internal.binary_search_tree import BinarySearchTree
 from onotation.internal.bitset import Bitset
 from onotation.internal.bloom_filter import BloomFilter
-from onotation.internal.btree import BTree
 from onotation.internal.cartesian_tree import CartesianTree
 from onotation.internal.cuckoo_filter import CuckooFilter
 from onotation.internal.fenwick_tree import FenwickTree
@@ -20,7 +20,7 @@ from onotation.internal.trie import Trie
 __author__ = "Sergei Y. Bogdanov <syubogdanov@outlook.com>"
 __version__ = "0.0.0"
 
-__all__: tuple[str, ...] = (
+__all__ = [
     "AVLTree",
     "BTree",
     "BinarySearchTree",
@@ -38,4 +38,4 @@ __all__: tuple[str, ...] = (
     "SplayTree",
     "Stack",
     "Trie",
-)
+]
