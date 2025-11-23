@@ -247,16 +247,16 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         self,
         /,
         *,
-        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
     ) -> T | Q: ...
 
     def __max__(
         self,
         /,
         *,
-        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
     ) -> T | Q:
         """Return the largest item.
 
@@ -288,16 +288,16 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         self,
         /,
         *,
-        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
     ) -> T | Q: ...
 
     def __min__(
         self,
         /,
         *,
-        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
     ) -> T | Q:
         """Return the smallest item.
 

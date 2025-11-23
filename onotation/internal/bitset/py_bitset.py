@@ -246,16 +246,16 @@ class Bitset(MutableSet[int], Reversible[int]):
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
     ) -> int | Q: ...
 
     def __max__(
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
     ) -> int | Q:
         """Return the largest item.
 
@@ -287,16 +287,16 @@ class Bitset(MutableSet[int], Reversible[int]):
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
     ) -> int | Q: ...
 
     def __min__(
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
     ) -> int | Q:
         """Return the smallest item.
 

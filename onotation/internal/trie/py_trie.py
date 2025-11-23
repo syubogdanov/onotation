@@ -246,16 +246,16 @@ class Trie(MutableSet[str], Reversible[str]):
         self,
         /,
         *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
     ) -> str | Q: ...
 
     def __max__(
         self,
         /,
         *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
     ) -> str | Q:
         """Return the largest item.
 
@@ -287,16 +287,16 @@ class Trie(MutableSet[str], Reversible[str]):
         self,
         /,
         *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
         default: Q,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
     ) -> str | Q: ...
 
     def __min__(
         self,
         /,
         *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
         default: Q | EllipsisType = ...,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
     ) -> str | Q:
         """Return the smallest item.
 
