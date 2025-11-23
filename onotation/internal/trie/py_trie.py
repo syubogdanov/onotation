@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableSet, Reversible
+from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Self, TypeVar
+from typing import TYPE_CHECKING, Any, Self, TypeAlias, TypeVar, overload
+
+from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
+
+
+if TYPE_CHECKING:
+    from types import EllipsisType
 
 
 Q = TypeVar("Q")
+
+
+SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any]
 
 
 class Trie(MutableSet[str], Reversible[str]):
@@ -224,6 +233,94 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+    ) -> str: ...
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> str | Q: ...
+
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> str | Q:
+        """Return the largest item.
+
+        Parameters
+        ----------
+        key : Callable[[str], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        str | Q
+            Largest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+    ) -> str: ...
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> str | Q: ...
+
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> str | Q:
+        """Return the smallest item.
+
+        Parameters
+        ----------
+        key : Callable[[str], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        str | Q
+            Smallest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __or__(self, other: Trie, /) -> Trie: ...
+
+    @overload
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
+
     def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements from the set and ``other``.
 
@@ -267,6 +364,12 @@ class Trie(MutableSet[str], Reversible[str]):
             Trie.
         """
         raise NotImplementedError
+
+    @overload
+    def __xor__(self, other: Trie, /) -> Trie: ...
+
+    @overload
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
     def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements in either the set or ``other`` but not both.

@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableSet
+from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Self, TypeVar
+from typing import TYPE_CHECKING, Any, Self, TypeAlias, TypeVar, overload
+
+from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
+
+
+if TYPE_CHECKING:
+    from types import EllipsisType
 
 
 Q = TypeVar("Q")
 
 
-class Bitset(MutableSet[int]):
+SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any]
+
+
+class Bitset(MutableSet[int], Reversible[int]):
     """The bitset."""
 
     def __init__(self, iterable: Iterable[int] = (), /) -> None:
@@ -224,6 +233,94 @@ class Bitset(MutableSet[int]):
         """
         raise NotImplementedError
 
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+    ) -> int: ...
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> int | Q: ...
+
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> int | Q:
+        """Return the largest item.
+
+        Parameters
+        ----------
+        key : Callable[[int], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        int | Q
+            Largest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+    ) -> int: ...
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> int | Q: ...
+
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> int | Q:
+        """Return the smallest item.
+
+        Parameters
+        ----------
+        key : Callable[[int], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        int | Q
+            Smallest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __or__(self, other: Bitset, /) -> Bitset: ...
+
+    @overload
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
+
     def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
         """Return a new set with elements from the set and ``other``.
 
@@ -236,6 +333,20 @@ class Bitset(MutableSet[int]):
         -------
         MutableSet[int | Q]
             Set.
+        """
+        raise NotImplementedError
+
+    def __reversed__(self) -> Iterator[int]:
+        """Return a reverse iterator.
+
+        Returns
+        -------
+        Iterator[int]
+            Iterator.
+
+        Notes
+        -----
+        * A descending order is guaranteed.
         """
         raise NotImplementedError
 
@@ -253,6 +364,12 @@ class Bitset(MutableSet[int]):
             Bitset.
         """
         raise NotImplementedError
+
+    @overload
+    def __xor__(self, other: Bitset, /) -> Bitset: ...
+
+    @overload
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
 
     def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
         """Return a new set with elements in either the set or ``other`` but not both.

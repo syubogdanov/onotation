@@ -1,12 +1,21 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableSet, Reversible
+from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Self, TypeVar
+from typing import TYPE_CHECKING, Any, Self, TypeAlias, TypeVar, overload
+
+from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
+
+
+if TYPE_CHECKING:
+    from types import EllipsisType
 
 
 T = TypeVar("T")
 Q = TypeVar("Q")
+
+
+SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any]
 
 
 class BinarySearchTree(MutableSet[T], Reversible[T]):
@@ -225,6 +234,94 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         """
         raise NotImplementedError
 
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+    ) -> T: ...
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> T | Q: ...
+
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> T | Q:
+        """Return the largest item.
+
+        Parameters
+        ----------
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        T | Q
+            Largest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+    ) -> T: ...
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+        default: Q,
+    ) -> T | Q: ...
+
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[T], SupportsRichComparison] | EllipsisType = ...,
+        default: Q | EllipsisType = ...,
+    ) -> T | Q:
+        """Return the smallest item.
+
+        Parameters
+        ----------
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default item.
+
+        Returns
+        -------
+        T | Q
+            Smallest or default.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __or__(self, other: BinarySearchTree[Q], /) -> BinarySearchTree[T | Q]: ...
+
+    @overload
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]: ...
+
     def __or__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]:
         """Return a new set with elements from the set and ``other``.
 
@@ -268,6 +365,12 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             Binary search tree.
         """
         raise NotImplementedError
+
+    @overload
+    def __xor__(self, other: BinarySearchTree[Q], /) -> BinarySearchTree[T | Q]: ...
+
+    @overload
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]: ...
 
     def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]:
         """Return a new set with elements in either the set or ``other`` but not both.
