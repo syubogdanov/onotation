@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Any, Self, TypeAlias, TypeVar, overload
+from typing import Any, Self, TypeAlias, TypeVar, overload
 
+from onotation.internal.sentinels import Sentinel, sentinel
 from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
-
-
-if TYPE_CHECKING:
-    from types import EllipsisType
 
 
 Q = TypeVar("Q")
@@ -20,13 +17,136 @@ SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any
 class Trie(MutableSet[str], Reversible[str]):
     """The trie."""
 
-    def __init__(self, iterable: Iterable[str] = (), /) -> None:
+    def __init__(self, iterable: Iterable[int] = (), /) -> None:
         """Initialize the object.
 
         Parameters
         ----------
-        iterable : Iterable[str]
+        iterable : Iterable[T]
             Iterable.
+        """
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        """Return the number of elements in set (cardinality).
+
+        Returns
+        -------
+        :class:`int`
+            Length.
+        """
+        raise NotImplementedError
+
+    def __contains__(self, element: object, /) -> bool:
+        """Test ``element`` for membership in the set.
+
+        Parameters
+        ----------
+        element : object
+            Element.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if present, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def isdisjoint(self, other: Iterable[object], /) -> bool:
+        """Return ``True`` if the set has no elements in common with ``other``.
+
+        Sets are disjoint if and only if their intersection is the empty set.
+
+        Parameters
+        ----------
+        other : Iterable[object]
+            Iterable.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if disjoint, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def __le__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether every element in the set is in ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if subset, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def __lt__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether the set is a proper subset of ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if proper subset, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def __ge__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether every element in ``other`` is in the set.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if superset, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def __gt__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether the set is a proper superset of ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if proper superset, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __or__(self, other: Trie, /) -> Trie: ...
+
+    @overload
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
+
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
+        """Return a new set with elements from the set and ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[Q]
+            Set.
+
+        Returns
+        -------
+        MutableSet[T | Q]
+            Set.
         """
         raise NotImplementedError
 
@@ -45,19 +165,144 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __contains__(self, element: object, /) -> bool:
-        """Test ``element`` for membership.
+    def __sub__(self, other: AbstractSet[object], /) -> Trie:
+        """Return a new set with elements in the set that are not in ``other``.
 
         Parameters
         ----------
-        element : object
-            Element.
+        other : AbstractSet[object]
+            Set.
 
         Returns
         -------
-        :class:`bool`
-            :obj:`True` if present, otherwise :obj:`False`.
+        Trie
+            Trie.
         """
+        raise NotImplementedError
+
+    @overload
+    def __xor__(self, other: Trie, /) -> Trie: ...
+
+    @overload
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
+
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
+        """Return a new set with elements in either the set or ``other`` but not both.
+
+        Parameters
+        ----------
+        other : AbstractSet[Q]
+            Set.
+
+        Returns
+        -------
+        MutableSet[T | Q]
+            Set.
+        """
+        raise NotImplementedError
+
+    def __ior__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+        """Update the set, adding elements from ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[T]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __iand__(self, other: AbstractSet[object], /) -> Self:
+        """Update the set, keeping only elements found in it and ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __isub__(self, other: AbstractSet[object], /) -> Self:
+        """Update the set, removing elements found in ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __ixor__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+        """Update the set, keeping only elements found in either set, but not in both.
+
+        Parameters
+        ----------
+        other : AbstractSet[T]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def add(self, element: int, /) -> None:
+        """Add ``element`` to the set.
+
+        Parameters
+        ----------
+        element : T
+            Element.
+        """
+        raise NotImplementedError
+
+    def remove(self, element: int, /) -> None:
+        """Remove ``element`` from the set.
+
+        Parameters
+        ----------
+        element : T
+            Element.
+        """
+        raise NotImplementedError
+
+    def discard(self, element: int, /) -> None:
+        """Remove ``element`` from the set if it is present.
+
+        Parameters
+        ----------
+        element : T
+            Element.
+        """
+        raise NotImplementedError
+
+    def pop(self) -> int:
+        """Remove and return an arbitrary element from the set.
+
+        Returns
+        -------
+        T
+            Element.
+        """
+        raise NotImplementedError
+
+    def clear(self) -> None:
+        """Remove all elements from the set."""
         raise NotImplementedError
 
     def __eq__(self, other: object) -> bool:
@@ -89,87 +334,12 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __ge__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether every element in ``other`` is in the set.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __gt__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether the set is a proper superset of ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if proper subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __iand__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, keeping only elements found in it and ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, adding elements from ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[str]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __isub__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, removing elements found in ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[int]:
         """Return an iterator.
 
         Returns
         -------
-        Iterator[str]
+        Iterator[T]
             Iterator.
 
         Notes
@@ -178,170 +348,12 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __ixor__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, keeping only elements found in either set, but not in both.
-
-        Parameters
-        ----------
-        other : AbstractSet[str]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __le__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether every element in the set is in ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __len__(self) -> int:
-        """Return the number of elements.
-
-        Returns
-        -------
-        :class:`int`
-            Length.
-        """
-        raise NotImplementedError
-
-    def __lt__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether the set is a proper subset of ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if proper subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str: ...
-
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str | Q: ...
-
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q | EllipsisType = ...,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str | Q:
-        """Return the largest item.
-
-        Parameters
-        ----------
-        key : Callable[[str], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default item.
-
-        Returns
-        -------
-        str | Q
-            Largest or default.
-        """
-        raise NotImplementedError
-
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str: ...
-
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str | Q: ...
-
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q | EllipsisType = ...,
-        key: Callable[[str], SupportsRichComparison] | EllipsisType = ...,
-    ) -> str | Q:
-        """Return the smallest item.
-
-        Parameters
-        ----------
-        key : Callable[[str], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default item.
-
-        Returns
-        -------
-        str | Q
-            Smallest or default.
-        """
-        raise NotImplementedError
-
-    @overload
-    def __or__(self, other: Trie, /) -> Trie: ...
-
-    @overload
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
-
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
-        """Return a new set with elements from the set and ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[Q]
-            Set.
-
-        Returns
-        -------
-        MutableSet[str | Q]
-            Set.
-        """
-        raise NotImplementedError
-
-    def __reversed__(self) -> Iterator[str]:
+    def __reversed__(self) -> Iterator[int]:
         """Return a reverse iterator.
 
         Returns
         -------
-        Iterator[str]
+        Iterator[T]
             Iterator.
 
         Notes
@@ -350,97 +362,84 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __sub__(self, other: AbstractSet[object], /) -> Trie:
-        """Return a new set with elements in the set that are not in ``other``.
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int: ...
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        default: Q,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q: ...
+
+    def __max__(
+        self,
+        /,
+        *,
+        default: Q | Sentinel = sentinel,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q:
+        """Return the largest item.
 
         Parameters
         ----------
-        other : AbstractSet[object]
-            Set.
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default.
 
         Returns
         -------
-        Trie
-            Trie.
+        T | Q
+            Largest.
         """
         raise NotImplementedError
 
     @overload
-    def __xor__(self, other: Trie, /) -> Trie: ...
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int: ...
 
     @overload
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
+    def __min__(
+        self,
+        /,
+        *,
+        default: Q,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q: ...
 
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
-        """Return a new set with elements in either the set or ``other`` but not both.
+    def __min__(
+        self,
+        /,
+        *,
+        default: Q | Sentinel = sentinel,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q:
+        """Return the smallest item.
 
         Parameters
         ----------
-        other : AbstractSet[Q]
-            Set.
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default.
 
         Returns
         -------
-        MutableSet[str | Q]
-            Set.
-        """
-        raise NotImplementedError
-
-    def add(self, element: str, /) -> None:
-        """Add ``element`` to the set.
-
-        Parameters
-        ----------
-        element : str
-            Element.
-        """
-        raise NotImplementedError
-
-    def clear(self) -> None:
-        """Remove all elements from the set."""
-        raise NotImplementedError
-
-    def discard(self, element: str, /) -> None:
-        """Remove ``element`` from the set if it is present.
-
-        Parameters
-        ----------
-        element : str
-            Element.
-        """
-        raise NotImplementedError
-
-    def isdisjoint(self, other: Iterable[object], /) -> bool:
-        """Return ``True`` if the set has no elements in common with ``other``.
-
-        Parameters
-        ----------
-        other : Iterable[object]
-            Iterable.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if disjoint, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def pop(self) -> str:
-        """Remove and return an arbitrary element from the set.
-
-        Returns
-        -------
-        str
-            Element.
-        """
-        raise NotImplementedError
-
-    def remove(self, element: str, /) -> None:
-        """Remove ``element`` from the set.
-
-        Parameters
-        ----------
-        element : str
-            Element.
+        T | Q
+            Smallest.
         """
         raise NotImplementedError

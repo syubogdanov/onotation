@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Any, Self, TypeAlias, TypeVar, overload
+from typing import Any, Self, TypeAlias, TypeVar, overload
 
+from onotation.internal.sentinels import Sentinel, sentinel
 from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
-
-
-if TYPE_CHECKING:
-    from types import EllipsisType
 
 
 Q = TypeVar("Q")
@@ -25,28 +22,23 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        iterable : Iterable[int]
+        iterable : Iterable[T]
             Iterable.
         """
         raise NotImplementedError
 
-    def __and__(self, other: AbstractSet[object], /) -> Bitset:
-        """Return a new set with elements common to the set and ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
+    def __len__(self) -> int:
+        """Return the number of elements in set (cardinality).
 
         Returns
         -------
-        Bitset
-            Bitset.
+        :class:`int`
+            Length.
         """
         raise NotImplementedError
 
     def __contains__(self, element: object, /) -> bool:
-        """Test ``element`` for membership.
+        """Test ``element`` for membership in the set.
 
         Parameters
         ----------
@@ -60,136 +52,20 @@ class Bitset(MutableSet[int], Reversible[int]):
         """
         raise NotImplementedError
 
-    def __eq__(self, other: object) -> bool:
-        """Test whether the set equals to ``other``.
+    def isdisjoint(self, other: Iterable[object], /) -> bool:
+        """Return ``True`` if the set has no elements in common with ``other``.
+
+        Sets are disjoint if and only if their intersection is the empty set.
 
         Parameters
         ----------
-        other : object
-            Object.
+        other : Iterable[object]
+            Iterable.
 
         Returns
         -------
         :class:`bool`
-            :obj:`True` if equal, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __hash__(self) -> int:
-        """Return the hash.
-
-        Returns
-        -------
-        :class:`int`
-            Hash.
-
-        Notes
-        -----
-        * Not defined.
-        """
-        raise NotImplementedError
-
-    def __ge__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether every element in ``other`` is in the set.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __gt__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether the set is a proper superset of ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if proper subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __iand__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, keeping only elements found in it and ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __ior__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, adding elements from ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[int]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __isub__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, removing elements found in ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __iter__(self) -> Iterator[int]:
-        """Return an iterator.
-
-        Returns
-        -------
-        Iterator[int]
-            Iterator.
-
-        Notes
-        -----
-        * An ascending order is guaranteed.
-        """
-        raise NotImplementedError
-
-    def __ixor__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, keeping only elements found in either set, but not in both.
-
-        Parameters
-        ----------
-        other : AbstractSet[int]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
+            :obj:`True` if disjoint, otherwise :obj:`False`.
         """
         raise NotImplementedError
 
@@ -208,16 +84,6 @@ class Bitset(MutableSet[int], Reversible[int]):
         """
         raise NotImplementedError
 
-    def __len__(self) -> int:
-        """Return the number of elements.
-
-        Returns
-        -------
-        :class:`int`
-            Length.
-        """
-        raise NotImplementedError
-
     def __lt__(self, other: AbstractSet[object], /) -> bool:
         """Test whether the set is a proper subset of ``other``.
 
@@ -233,85 +99,33 @@ class Bitset(MutableSet[int], Reversible[int]):
         """
         raise NotImplementedError
 
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int: ...
-
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int | Q: ...
-
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q | EllipsisType = ...,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int | Q:
-        """Return the largest item.
+    def __ge__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether every element in ``other`` is in the set.
 
         Parameters
         ----------
-        key : Callable[[int], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default item.
+        other : AbstractSet[object]
+            Set.
 
         Returns
         -------
-        int | Q
-            Largest or default.
+        :class:`bool`
+            :obj:`True` if superset, otherwise :obj:`False`.
         """
         raise NotImplementedError
 
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int: ...
-
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int | Q: ...
-
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q | EllipsisType = ...,
-        key: Callable[[int], SupportsRichComparison] | EllipsisType = ...,
-    ) -> int | Q:
-        """Return the smallest item.
+    def __gt__(self, other: AbstractSet[object], /) -> bool:
+        """Test whether the set is a proper superset of ``other``.
 
         Parameters
         ----------
-        key : Callable[[int], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default item.
+        other : AbstractSet[object]
+            Set.
 
         Returns
         -------
-        int | Q
-            Smallest or default.
+        :class:`bool`
+            :obj:`True` if proper superset, otherwise :obj:`False`.
         """
         raise NotImplementedError
 
@@ -331,22 +145,23 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        MutableSet[int | Q]
+        MutableSet[T | Q]
             Set.
         """
         raise NotImplementedError
 
-    def __reversed__(self) -> Iterator[int]:
-        """Return a reverse iterator.
+    def __and__(self, other: AbstractSet[object], /) -> Bitset:
+        """Return a new set with elements common to the set and ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
 
         Returns
         -------
-        Iterator[int]
-            Iterator.
-
-        Notes
-        -----
-        * A descending order is guaranteed.
+        Bitset
+            Bitset.
         """
         raise NotImplementedError
 
@@ -381,8 +196,68 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        MutableSet[int | Q]
+        MutableSet[T | Q]
             Set.
+        """
+        raise NotImplementedError
+
+    def __ior__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+        """Update the set, adding elements from ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[T]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __iand__(self, other: AbstractSet[object], /) -> Self:
+        """Update the set, keeping only elements found in it and ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __isub__(self, other: AbstractSet[object], /) -> Self:
+        """Update the set, removing elements found in ``other``.
+
+        Parameters
+        ----------
+        other : AbstractSet[object]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
+        """
+        raise NotImplementedError
+
+    def __ixor__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+        """Update the set, keeping only elements found in either set, but not in both.
+
+        Parameters
+        ----------
+        other : AbstractSet[T]
+            Set.
+
+        Returns
+        -------
+        Self
+            self.
         """
         raise NotImplementedError
 
@@ -391,46 +266,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        element : int
-            Element.
-        """
-        raise NotImplementedError
-
-    def clear(self) -> None:
-        """Remove all elements from the set."""
-        raise NotImplementedError
-
-    def discard(self, element: int, /) -> None:
-        """Remove ``element`` from the set if it is present.
-
-        Parameters
-        ----------
-        element : int
-            Element.
-        """
-        raise NotImplementedError
-
-    def isdisjoint(self, other: Iterable[object], /) -> bool:
-        """Return ``True`` if the set has no elements in common with ``other``.
-
-        Parameters
-        ----------
-        other : Iterable[object]
-            Iterable.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if disjoint, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def pop(self) -> int:
-        """Remove and return an arbitrary element from the set.
-
-        Returns
-        -------
-        int
+        element : T
             Element.
         """
         raise NotImplementedError
@@ -440,7 +276,170 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        element : int
+        element : T
             Element.
+        """
+        raise NotImplementedError
+
+    def discard(self, element: int, /) -> None:
+        """Remove ``element`` from the set if it is present.
+
+        Parameters
+        ----------
+        element : T
+            Element.
+        """
+        raise NotImplementedError
+
+    def pop(self) -> int:
+        """Remove and return an arbitrary element from the set.
+
+        Returns
+        -------
+        T
+            Element.
+        """
+        raise NotImplementedError
+
+    def clear(self) -> None:
+        """Remove all elements from the set."""
+        raise NotImplementedError
+
+    def __eq__(self, other: object) -> bool:
+        """Test whether the set equals to ``other``.
+
+        Parameters
+        ----------
+        other : object
+            Object.
+
+        Returns
+        -------
+        :class:`bool`
+            :obj:`True` if equal, otherwise :obj:`False`.
+        """
+        raise NotImplementedError
+
+    def __hash__(self) -> int:
+        """Return the hash.
+
+        Returns
+        -------
+        :class:`int`
+            Hash.
+
+        Notes
+        -----
+        * Not defined.
+        """
+        raise NotImplementedError
+
+    def __iter__(self) -> Iterator[int]:
+        """Return an iterator.
+
+        Returns
+        -------
+        Iterator[T]
+            Iterator.
+
+        Notes
+        -----
+        * An ascending order is guaranteed.
+        """
+        raise NotImplementedError
+
+    def __reversed__(self) -> Iterator[int]:
+        """Return a reverse iterator.
+
+        Returns
+        -------
+        Iterator[T]
+            Iterator.
+
+        Notes
+        -----
+        * A descending order is guaranteed.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int: ...
+
+    @overload
+    def __max__(
+        self,
+        /,
+        *,
+        default: Q,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q: ...
+
+    def __max__(
+        self,
+        /,
+        *,
+        default: Q | Sentinel = sentinel,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q:
+        """Return the largest item.
+
+        Parameters
+        ----------
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default.
+
+        Returns
+        -------
+        T | Q
+            Largest.
+        """
+        raise NotImplementedError
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int: ...
+
+    @overload
+    def __min__(
+        self,
+        /,
+        *,
+        default: Q,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q: ...
+
+    def __min__(
+        self,
+        /,
+        *,
+        default: Q | Sentinel = sentinel,
+        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> int | Q:
+        """Return the smallest item.
+
+        Parameters
+        ----------
+        key : Callable[[T], SupportsRichComparison], unset
+            Comparator.
+
+        default : Q, unset
+            Default.
+
+        Returns
+        -------
+        T | Q
+            Smallest.
         """
         raise NotImplementedError
