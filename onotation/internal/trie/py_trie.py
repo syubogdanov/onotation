@@ -17,7 +17,7 @@ SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any
 class Trie(MutableSet[str], Reversible[str]):
     """The trie."""
 
-    def __init__(self, iterable: Iterable[int] = (), /) -> None:
+    def __init__(self, iterable: Iterable[str] = (), /) -> None:
         """Initialize the object.
 
         Parameters
@@ -133,9 +133,9 @@ class Trie(MutableSet[str], Reversible[str]):
     def __or__(self, other: Trie, /) -> Trie: ...
 
     @overload
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements from the set and ``other``.
 
         Parameters
@@ -184,9 +184,9 @@ class Trie(MutableSet[str], Reversible[str]):
     def __xor__(self, other: Trie, /) -> Trie: ...
 
     @overload
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]: ...
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[int | Q]:
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements in either the set or ``other`` but not both.
 
         Parameters
@@ -201,7 +201,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __ior__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+    def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
 
         Parameters
@@ -246,7 +246,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __ixor__(self, other: AbstractSet[int], /) -> Self:  # type: ignore[misc, override]
+    def __ixor__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, keeping only elements found in either set, but not in both.
 
         Parameters
@@ -261,7 +261,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def add(self, element: int, /) -> None:
+    def add(self, element: str, /) -> None:
         """Add ``element`` to the set.
 
         Parameters
@@ -271,7 +271,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def remove(self, element: int, /) -> None:
+    def remove(self, element: str, /) -> None:
         """Remove ``element`` from the set.
 
         Parameters
@@ -281,7 +281,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def discard(self, element: int, /) -> None:
+    def discard(self, element: str, /) -> None:
         """Remove ``element`` from the set if it is present.
 
         Parameters
@@ -291,7 +291,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def pop(self) -> int:
+    def pop(self) -> str:
         """Remove and return an arbitrary element from the set.
 
         Returns
@@ -334,7 +334,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __iter__(self) -> Iterator[int]:
+    def __iter__(self) -> Iterator[str]:
         """Return an iterator.
 
         Returns
@@ -348,7 +348,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         raise NotImplementedError
 
-    def __reversed__(self) -> Iterator[int]:
+    def __reversed__(self) -> Iterator[str]:
         """Return a reverse iterator.
 
         Returns
@@ -367,8 +367,8 @@ class Trie(MutableSet[str], Reversible[str]):
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int: ...
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str: ...
 
     @overload
     def __max__(
@@ -376,16 +376,16 @@ class Trie(MutableSet[str], Reversible[str]):
         /,
         *,
         default: Q,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q: ...
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str | Q: ...
 
     def __max__(
         self,
         /,
         *,
         default: Q | Sentinel = sentinel,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q:
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str | Q:
         """Return the largest item.
 
         Parameters
@@ -408,8 +408,8 @@ class Trie(MutableSet[str], Reversible[str]):
         self,
         /,
         *,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int: ...
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str: ...
 
     @overload
     def __min__(
@@ -417,16 +417,16 @@ class Trie(MutableSet[str], Reversible[str]):
         /,
         *,
         default: Q,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q: ...
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str | Q: ...
 
     def __min__(
         self,
         /,
         *,
         default: Q | Sentinel = sentinel,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q:
+        key: Callable[[str], SupportsRichComparison] | Sentinel = sentinel,
+    ) -> str | Q:
         """Return the smallest item.
 
         Parameters
