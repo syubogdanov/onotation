@@ -145,7 +145,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        MutableSet[T | Q]
+        MutableSet[str | Q]
             Set.
         """
         raise NotImplementedError
@@ -196,7 +196,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        MutableSet[T | Q]
+        MutableSet[str | Q]
             Set.
         """
         raise NotImplementedError
@@ -206,7 +206,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        other : AbstractSet[T]
+        other : AbstractSet[str]
             Set.
 
         Returns
@@ -251,7 +251,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        other : AbstractSet[T]
+        other : AbstractSet[str]
             Set.
 
         Returns
@@ -266,7 +266,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        element : T
+        element : str
             Element.
         """
         raise NotImplementedError
@@ -276,7 +276,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        element : T
+        element : str
             Element.
         """
         raise NotImplementedError
@@ -286,7 +286,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        element : T
+        element : str
             Element.
         """
         raise NotImplementedError
@@ -296,7 +296,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        T
+        str
             Element.
         """
         raise NotImplementedError
@@ -339,7 +339,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        Iterator[T]
+        Iterator[str]
             Iterator.
 
         Notes
@@ -353,7 +353,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        Iterator[T]
+        Iterator[str]
             Iterator.
 
         Notes
@@ -390,7 +390,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        key : Callable[[T], SupportsRichComparison], unset
+        key : Callable[[str], SupportsRichComparison], unset
             Comparator.
 
         default : Q, unset
@@ -398,7 +398,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        T | Q
+        str | Q
             Largest.
         """
         raise NotImplementedError
@@ -431,7 +431,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Parameters
         ----------
-        key : Callable[[T], SupportsRichComparison], unset
+        key : Callable[[str], SupportsRichComparison], unset
             Comparator.
 
         default : Q, unset
@@ -439,7 +439,7 @@ class Trie(MutableSet[str], Reversible[str]):
 
         Returns
         -------
-        T | Q
+        str | Q
             Smallest.
         """
         raise NotImplementedError

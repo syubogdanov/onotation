@@ -22,7 +22,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        iterable : Iterable[T]
+        iterable : Iterable[int]
             Iterable.
         """
         raise NotImplementedError
@@ -145,7 +145,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        MutableSet[T | Q]
+        MutableSet[int | Q]
             Set.
         """
         raise NotImplementedError
@@ -196,7 +196,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        MutableSet[T | Q]
+        MutableSet[int | Q]
             Set.
         """
         raise NotImplementedError
@@ -206,7 +206,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        other : AbstractSet[T]
+        other : AbstractSet[int]
             Set.
 
         Returns
@@ -251,7 +251,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        other : AbstractSet[T]
+        other : AbstractSet[int]
             Set.
 
         Returns
@@ -266,7 +266,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        element : T
+        element : int
             Element.
         """
         raise NotImplementedError
@@ -276,7 +276,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        element : T
+        element : int
             Element.
         """
         raise NotImplementedError
@@ -286,7 +286,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        element : T
+        element : int
             Element.
         """
         raise NotImplementedError
@@ -296,7 +296,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        T
+        int
             Element.
         """
         raise NotImplementedError
@@ -339,7 +339,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        Iterator[T]
+        Iterator[int]
             Iterator.
 
         Notes
@@ -353,7 +353,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        Iterator[T]
+        Iterator[int]
             Iterator.
 
         Notes
@@ -390,7 +390,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        key : Callable[[T], SupportsRichComparison], unset
+        key : Callable[[int], SupportsRichComparison], unset
             Comparator.
 
         default : Q, unset
@@ -398,7 +398,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        T | Q
+        int | Q
             Largest.
         """
         raise NotImplementedError
@@ -431,7 +431,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Parameters
         ----------
-        key : Callable[[T], SupportsRichComparison], unset
+        key : Callable[[int], SupportsRichComparison], unset
             Comparator.
 
         default : Q, unset
@@ -439,7 +439,7 @@ class Bitset(MutableSet[int], Reversible[int]):
 
         Returns
         -------
-        T | Q
+        int | Q
             Smallest.
         """
         raise NotImplementedError
