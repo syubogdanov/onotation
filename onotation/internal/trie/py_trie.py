@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Self, TypeVar, overload
+from typing import Self, TypeVar, overload, Any
 
 
 Q = TypeVar("Q")
@@ -19,7 +19,10 @@ class Trie(MutableSet[str], Reversible[str]):
         iterable : Iterable[T]
             Iterable.
         """
-        raise NotImplementedError
+        self._root: dict[str, Any] = {}
+        self._count = 0
+        for word in iterable:
+            self.add(word)
 
     def __len__(self) -> int:
         """Return the number of elements in set (cardinality).
@@ -29,7 +32,8 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`int`
             Length.
         """
-        raise NotImplementedError
+
+        return self._count
 
     def __contains__(self, element: object, /) -> bool:
         """Test ``element`` for membership in the set.
@@ -44,7 +48,15 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        if not isinstance(element, str):
+            return False
+        node = self._root
+        for char in element:
+            if char not in node:
+                return False
+            node = node[char]
+
+        return node.get("*", False)
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -61,7 +73,10 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if disjoint, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        for element in other:
+            if element in self:
+                return False
+        return True
 
     def __le__(self, other: AbstractSet[object], /) -> bool:
         """Test whether every element in the set is in ``other``.
@@ -76,7 +91,12 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if subset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        if len(self) > len(other):
+            return False
+        for element in self:
+            if element not in other:
+                return False
+        return True
 
     def __lt__(self, other: AbstractSet[object], /) -> bool:
         """Test whether the set is a proper subset of ``other``.
@@ -91,7 +111,7 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if proper subset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return len(self) < len(other) and self <= other
 
     def __ge__(self, other: AbstractSet[object], /) -> bool:
         """Test whether every element in ``other`` is in the set.
@@ -106,7 +126,12 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if superset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        if len(self) < len(other):
+            return False
+        for element in other:
+            if element not in self:
+                return False
+        return True
 
     def __gt__(self, other: AbstractSet[object], /) -> bool:
         """Test whether the set is a proper superset of ``other``.
@@ -121,7 +146,7 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if proper superset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return len(self) > len(other) and self >= other
 
     @overload
     def __or__(self, other: Trie, /) -> Trie: ...
@@ -142,7 +167,9 @@ class Trie(MutableSet[str], Reversible[str]):
         MutableSet[str | Q]
             Set.
         """
-        raise NotImplementedError
+        return set(self) | set(other)
+
+
 
     def __and__(self, other: AbstractSet[object], /) -> Trie:
         """Return a new set with elements common to the set and ``other``.
@@ -157,7 +184,11 @@ class Trie(MutableSet[str], Reversible[str]):
         Trie
             Trie.
         """
-        raise NotImplementedError
+        result = Trie()
+        for element in self:
+            if element in other:
+                result.add(element)
+        return result
 
     def __sub__(self, other: AbstractSet[object], /) -> Trie:
         """Return a new set with elements in the set that are not in ``other``.
@@ -172,7 +203,11 @@ class Trie(MutableSet[str], Reversible[str]):
         Trie
             Trie.
         """
-        raise NotImplementedError
+        result = Trie()
+        for element in self:
+            if element not in other:
+                result.add(element)
+        return result
 
     @overload
     def __xor__(self, other: Trie, /) -> Trie: ...
@@ -193,8 +228,10 @@ class Trie(MutableSet[str], Reversible[str]):
         MutableSet[str | Q]
             Set.
         """
-        raise NotImplementedError
+        return set(self) ^ set(other)
 
+        
+        
     def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
 
@@ -208,7 +245,9 @@ class Trie(MutableSet[str], Reversible[str]):
         Self
             self.
         """
-        raise NotImplementedError
+        for element in other:
+            self.add(element)
+        return self
 
     def __iand__(self, other: AbstractSet[object], /) -> Self:
         """Update the set, keeping only elements found in it and ``other``.
@@ -223,7 +262,13 @@ class Trie(MutableSet[str], Reversible[str]):
         Self
             self.
         """
-        raise NotImplementedError
+        removing = []
+        for element in self:
+            if element not in other:
+                removing.append(element)
+        for element in removing:
+            self.discard(element)
+        return self
 
     def __isub__(self, other: AbstractSet[object], /) -> Self:
         """Update the set, removing elements found in ``other``.
@@ -238,10 +283,14 @@ class Trie(MutableSet[str], Reversible[str]):
         Self
             self.
         """
-        raise NotImplementedError
+        for element in other:
+            if isinstance(element, str):
+                self.discard(element)
+        return self
 
     def __ixor__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, keeping only elements found in either set, but not in both.
+        """Update the set, keeping only elements found in either set, 
+        but not in both.
 
         Parameters
         ----------
@@ -253,7 +302,12 @@ class Trie(MutableSet[str], Reversible[str]):
         Self
             self.
         """
-        raise NotImplementedError
+        for element in other:
+            if element in self:
+                self.remove(element)
+            else:
+                self.add(element)
+        return self
 
     def add(self, element: str, /) -> None:
         """Add ``element`` to the set.
@@ -263,7 +317,20 @@ class Trie(MutableSet[str], Reversible[str]):
         element : str
             Element.
         """
-        raise NotImplementedError
+        if element == "":
+            if not self._root.get("*", False):
+                self._root["*"] = True
+                self._count += 1
+            return
+        node = self._root
+        for char in element:
+            if char not in node:
+                node[char] = {}
+            node = node[char]
+
+        if not node.get("*", False):
+            node["*"] = True
+            self._count += 1
 
     def remove(self, element: str, /) -> None:
         """Remove ``element`` from the set.
@@ -273,7 +340,23 @@ class Trie(MutableSet[str], Reversible[str]):
         element : str
             Element.
         """
-        raise NotImplementedError
+        if element not in self:
+            raise KeyError
+        nodes = []
+        node = self._root
+
+        for char in element:
+            nodes.append((node, char))
+            node = node[char]
+        
+        if node.get("*", False):
+            del node["*"]
+            self._count -= 1
+        
+        while nodes and not node and "*" not in node:
+            parent, char = nodes.pop()
+            del parent[char]
+            node = parent
 
     def discard(self, element: str, /) -> None:
         """Remove ``element`` from the set if it is present.
@@ -283,7 +366,8 @@ class Trie(MutableSet[str], Reversible[str]):
         element : str
             Element.
         """
-        raise NotImplementedError
+        if element in self:
+            self.remove(element)
 
     def pop(self) -> str:
         """Remove and return an arbitrary element from the set.
@@ -293,11 +377,17 @@ class Trie(MutableSet[str], Reversible[str]):
         str
             Element.
         """
-        raise NotImplementedError
+        if self._count == 0:
+            raise KeyError
+        for element in self:
+            self.remove(element)
+            return element
+        raise RuntimeError
 
     def clear(self) -> None:
         """Remove all elements from the set."""
-        raise NotImplementedError
+        self._root.clear()
+        self._count = 0
 
     def __eq__(self, other: object) -> bool:
         """Test whether the set equals to ``other``.
@@ -312,8 +402,18 @@ class Trie(MutableSet[str], Reversible[str]):
         :class:`bool`
             :obj:`True` if equal, otherwise :obj:`False`.
         """
-        raise NotImplementedError
-
+        if self is other:
+            return True
+        if not isinstance(other, AbstractSet):
+            return False
+        if len(self) != len(other):
+            return False
+        
+        for element in self:
+            if element not in other:
+                return False
+        return True
+    
     def __hash__(self) -> int:
         """Return the hash.
 
@@ -326,7 +426,7 @@ class Trie(MutableSet[str], Reversible[str]):
         -----
         * Not defined.
         """
-        raise NotImplementedError
+        raise TypeError
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator.
@@ -340,7 +440,15 @@ class Trie(MutableSet[str], Reversible[str]):
         -----
         * An ascending order is guaranteed.
         """
-        raise NotImplementedError
+        stack = [(self._root, "")]
+        while stack:
+            node, prefix = stack.pop()
+            if node.get("*", False):
+                yield prefix
+            
+            children = [char for char in node if char != "*"]
+            for char in sorted(children, reverse=True):
+                stack.append((node[char], prefix + char))
 
     def __reversed__(self) -> Iterator[str]:
         """Return a reverse iterator.
@@ -354,4 +462,4 @@ class Trie(MutableSet[str], Reversible[str]):
         -----
         * A descending order is guaranteed.
         """
-        raise NotImplementedError
+        return iter(sorted(self, reverse=True))
