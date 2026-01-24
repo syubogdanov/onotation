@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
+from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Any, Self, TypeAlias, TypeVar, overload
-
-from onotation.internal.sentinels import Sentinel, sentinel
-from onotation.internal.typing import SupportsDunderGT, SupportsDunderLT
+from typing import Self, TypeVar, overload
 
 
 Q = TypeVar("Q")
-
-
-SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any]
 
 
 class Bitset(MutableSet[int], Reversible[int]):
@@ -359,87 +353,5 @@ class Bitset(MutableSet[int], Reversible[int]):
         Notes
         -----
         * A descending order is guaranteed.
-        """
-        raise NotImplementedError
-
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int: ...
-
-    @overload
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q: ...
-
-    def __max__(
-        self,
-        /,
-        *,
-        default: Q | Sentinel = sentinel,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q:
-        """Return the largest item.
-
-        Parameters
-        ----------
-        key : Callable[[int], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default.
-
-        Returns
-        -------
-        int | Q
-            Largest.
-        """
-        raise NotImplementedError
-
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int: ...
-
-    @overload
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q: ...
-
-    def __min__(
-        self,
-        /,
-        *,
-        default: Q | Sentinel = sentinel,
-        key: Callable[[int], SupportsRichComparison] | Sentinel = sentinel,
-    ) -> int | Q:
-        """Return the smallest item.
-
-        Parameters
-        ----------
-        key : Callable[[int], SupportsRichComparison], unset
-            Comparator.
-
-        default : Q, unset
-            Default.
-
-        Returns
-        -------
-        int | Q
-            Smallest.
         """
         raise NotImplementedError
