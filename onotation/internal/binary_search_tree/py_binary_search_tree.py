@@ -16,6 +16,7 @@ class Node(Generic[T]):
     """The BST node."""
 
     value: T
+    parent: Node[T] | None = None
     left: Node[T] | None = None
     right: Node[T] | None = None
 
@@ -66,14 +67,50 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         element = cast("T", element)
 
         while node:
-            if element < node.value: # type: ignore[operator]
+            if element < node.value:  # type: ignore[operator]
                 node = node.left
-            elif node.value < element: # type: ignore[operator]
+            elif node.value < element:  # type: ignore[operator]
                 node = node.right
             else:
                 return True
 
         return False
+
+    def _get_rightmost(self, node: Node[T]) -> Node[T]:
+        """Return the rightmost node in the subtree."""
+        while node.right:
+            node = node.right
+
+        return cast("Node[T]", node)
+
+    def _get_leftmost(self, node: Node[T]) -> Node[T]:
+        """Return the leftmost node in the subtree."""
+        while node.left:
+            node = node.left
+
+        return cast("Node[T]", node)
+
+    def _get_predecessor(self, node: Node[T]) -> Node[T] | None:
+        """Return the in-order predecessor of the node."""
+        if node.left:
+            return self._get_rightmost(cast("Node[T]", node.left))
+
+        current = node
+        while current.parent and current.parent.left is current:
+            current = current.parent
+
+        return current.parent
+
+    def _get_successor(self, node: Node[T]) -> Node[T] | None:
+        """Return the in-order successor of the node."""
+        if node.right:
+            return self._get_leftmost(cast("Node[T]", node.right))
+
+        current = node
+        while current.parent and current.parent.right is current:
+            current = current.parent
+
+        return current.parent
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -88,7 +125,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         Returns
         -------
         :class:`bool`
-            :obj:`True` if disjoint, otherwise :obj:`False`.
+            :obj:`True` if disjoint, otherwise :obj:`False`.parent
         """
         return all(element not in self for element in other)
 
@@ -347,20 +384,28 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         node = self._root
 
         while True:
-            if element < node.value: # type: ignore[operator]
+            if element < node.value:  # type: ignore[operator]
                 if not node.left:
-                    node.left = Node(element)
+                    node.left = Node(element, parent=node)
                     self._size += 1
                     return
                 node = node.left
-            elif node.value < element: # type: ignore[operator]
+            elif node.value < element:  # type: ignore[operator]
                 if not node.right:
-                    node.right = Node(element)
+                    node.right = Node(element, parent=node)
                     self._size += 1
                     return
                 node = node.right
             else:
                 return
+
+    def _find_node(self, element: T) -> Node[T] | None:
+        """Find node with given element."""
+        node = self._root
+        while node and node.value != element:
+            node = node.left if element < node.value else node.right  # type: ignore[operator]
+
+        return node
 
     def remove(self, element: T, /) -> None:
         """Remove ``element`` from the set.
@@ -370,43 +415,44 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        parent: Node[T] | None = None
-        node = self._root
-
-        while node and node.value != element:
-            parent = node
-            node = node.left if element < node.value else node.right # type: ignore[operator]
-
+        node = self._find_node(element)
         if not node:
             raise KeyError(element)
 
         if not node.left or not node.right:
-            child = node.left if not node.left else node.right
+            child = node.left if node.left else node.right
 
-            if not parent:
+            if child:
+                child.parent = node.parent
+
+            if not node.parent:
                 self._root = child
-            elif parent.left is node:
-                parent.left = child
+            elif node.parent.left is node:
+                node.parent.left = child
             else:
-                parent.right = child
+                node.parent.right = child
 
             self._size -= 1
             return
 
-        successor_parent = node
-        successor = node.right
-
-        while successor.left:
-            successor_parent = successor
-            successor = successor.left
+        exception = "unreachable"
+        successor = self._get_successor(node)
+        if successor is None:
+            raise RuntimeError(exception)
 
         node.value = successor.value
+
         child = successor.right
 
-        if successor_parent.left is successor:
-            successor.left = child
+        if child:
+            child.parent = successor.parent
+
+        if successor.parent is None:
+            self._root = child
+        elif successor.parent.left is successor:
+            successor.parent.left = child
         else:
-            successor.right = child
+            successor.parent.right = child
 
         self._size -= 1
 
@@ -433,19 +479,22 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             detail = f"pop from an empty {self.__class__.__name__}"
             raise KeyError(detail)
 
-        parent = None
         node = self._root
 
         while node.left:
-            parent = node
             node = node.left
 
         value = node.value
 
-        if not parent:
+        if node.right:
+            node.right.parent = node.parent
+
+        if not node.parent:
             self._root = node.right
+        elif node.parent.left is node:
+            node.parent.left = node.right
         else:
-            parent.left = node.right
+            node.parent.left = node.right
 
         self._size -= 1
         return value
@@ -499,16 +548,14 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         -----
         * An ascending order is guaranteed.
         """
-        stack: list[Node[T]] = []
-        node = self._root
-        while stack or node:
-            while node:
-                stack.append(node)
-                node = node.left
+        if not self._root:
+            return
 
-            node = stack.pop()
-            yield node.value
-            node = node.right
+        current: Node[T] | None = self._get_leftmost(self._root)
+
+        while current:
+            yield current.value
+            current = self._get_successor(current)
 
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
@@ -522,13 +569,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         -----
         * A descending order is guaranteed.
         """
-        stack: list[Node] = []
-        node = self._root
-        while stack or node:
-            while node:
-                stack.append(node)
-                node = node.right
+        if not self._root:
+            return
 
-            node = stack.pop()
-            yield node.value
-            node = node.left
+        current: Node[T] | None = self._get_rightmost(self._root)
+
+        while current:
+            yield current.value
+            current = self._get_predecessor(current)
