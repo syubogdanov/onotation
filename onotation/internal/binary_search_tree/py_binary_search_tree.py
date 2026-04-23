@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Generic, Self, TypeVar, cast, overload
+from typing import Generic, Self, TypeVar, overload
 
 
 T = TypeVar("T")
@@ -19,6 +19,48 @@ class Node(Generic[T]):
     parent: Node[T] | None = None
     left: Node[T] | None = None
     right: Node[T] | None = None
+
+    @property
+    def rightmost(self) -> Node[T]:
+        """Return the rightmost node in the subtree."""
+        node = self
+        while node.right:
+            node = node.right
+
+        return node
+
+    @property
+    def leftmost(self) -> Node[T]:
+        """Return the leftmost node in the subtree."""
+        node = self
+        while node.left:
+            node = node.left
+
+        return node
+
+    @property
+    def predecessor(self) -> Node[T] | None:
+        """Return the in-order predecessor."""
+        if self.left:
+            return self.left.rightmost
+
+        current = self
+        while current.parent and current.parent.left is current:
+            current = current.parent
+
+        return current.parent
+
+    @property
+    def successor(self) -> Node[T] | None:
+        """Return the in-order successor."""
+        if self.right:
+            return self.right.leftmost
+
+        current = self
+        while current.parent and current.parent.right is current:
+            current = current.parent
+
+        return current.parent
 
 
 class BinarySearchTree(MutableSet[T], Reversible[T]):
@@ -64,7 +106,6 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             :obj:`True` if present, otherwise :obj:`False`.
         """
         node = self._root
-        element = cast("T", element)
 
         while node:
             if element < node.value:  # type: ignore[operator]
@@ -75,42 +116,6 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
                 return True
 
         return False
-
-    def _get_rightmost(self, node: Node[T]) -> Node[T]:
-        """Return the rightmost node in the subtree."""
-        while node.right:
-            node = node.right
-
-        return cast("Node[T]", node)
-
-    def _get_leftmost(self, node: Node[T]) -> Node[T]:
-        """Return the leftmost node in the subtree."""
-        while node.left:
-            node = node.left
-
-        return cast("Node[T]", node)
-
-    def _get_predecessor(self, node: Node[T]) -> Node[T] | None:
-        """Return the in-order predecessor of the node."""
-        if node.left:
-            return self._get_rightmost(cast("Node[T]", node.left))
-
-        current = node
-        while current.parent and current.parent.left is current:
-            current = current.parent
-
-        return current.parent
-
-    def _get_successor(self, node: Node[T]) -> Node[T] | None:
-        """Return the in-order successor of the node."""
-        if node.right:
-            return self._get_leftmost(cast("Node[T]", node.right))
-
-        current = node
-        while current.parent and current.parent.right is current:
-            current = current.parent
-
-        return current.parent
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -210,9 +215,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         """
         result = BinarySearchTree[T | Q]() if isinstance(other, BinarySearchTree) else set[T | Q]()
 
-        for element in other:
-            element_new: T | Q = element
-            result.add(element_new)
+        for element in self:
+            result.add(element)
+
+        for element in other:  # type: ignore[assignment]
+            result.add(element)
 
         return result
 
@@ -415,8 +422,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        node = self._find_node(element)
-        if not node:
+        if not (node := self._find_node(element)):
             raise KeyError(element)
 
         if not node.left or not node.right:
@@ -435,8 +441,8 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             self._size -= 1
             return
 
-        exception = "unreachable"
-        successor = self._get_successor(node)
+        successor = node.successor
+        exception = "unreacheble"
         if successor is None:
             raise RuntimeError(exception)
 
@@ -551,11 +557,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         if not self._root:
             return
 
-        current: Node[T] | None = self._get_leftmost(self._root)
+        current: Node[T] | None = self._root.leftmost
 
         while current:
             yield current.value
-            current = self._get_successor(current)
+            current = current.successor
 
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
@@ -572,8 +578,8 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         if not self._root:
             return
 
-        current: Node[T] | None = self._get_rightmost(self._root)
+        current: Node[T] | None = self._root.rightmost
 
         while current:
             yield current.value
-            current = self._get_predecessor(current)
+            current = current.predecessor
