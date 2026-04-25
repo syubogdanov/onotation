@@ -105,17 +105,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        node = self._root
-
-        while node:
-            if element < node.value:  # type: ignore[operator]
-                node = node.left
-            elif node.value < element:  # type: ignore[operator]
-                node = node.right
-            else:
-                return True
-
-        return False
+        return self._find_node(element) is not None
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -286,12 +276,14 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         """
         result = BinarySearchTree[T | Q]() if isinstance(other, BinarySearchTree) else set[T | Q]()
 
+        for element in self:
+            result.add(element)
+
         for element in other:
-            element_new: T | Q = element
-            if element_new in result:
-                result.discard(element_new)
+            if element in result:
+                result.discard(element)
             else:
-                result.add(element_new)
+                result.add(element)
 
         return result
 
@@ -485,24 +477,9 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             detail = f"pop from an empty {self.__class__.__name__}"
             raise KeyError(detail)
 
-        node = self._root
-
-        while node.left:
-            node = node.left
-
+        node = self._root.leftmost
         value = node.value
-
-        if node.right:
-            node.right.parent = node.parent
-
-        if not node.parent:
-            self._root = node.right
-        elif node.parent.left is node:
-            node.parent.left = node.right
-        else:
-            node.parent.left = node.right
-
-        self._size -= 1
+        self.remove(value)
         return value
 
     def clear(self) -> None:
@@ -554,14 +531,14 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         -----
         * An ascending order is guaranteed.
         """
-        if not self._root:
-            return
+        if self._root:
+            current: Node[T] | None = self._root.leftmost
 
-        current: Node[T] | None = self._root.leftmost
+            while current:
+                yield current.value
+                current = current.successor
 
-        while current:
-            yield current.value
-            current = current.successor
+        return
 
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
