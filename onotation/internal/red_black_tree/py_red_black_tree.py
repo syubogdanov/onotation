@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
+from contextlib import suppress
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Self, TypeVar, overload
+from typing import Generic, Self, TypeVar, overload
 
 
 T = TypeVar("T")
@@ -11,6 +13,8 @@ Q = TypeVar("Q")
 
 
 class Color(Enum):
+    """Node color for RBT."""
+
     RED = auto()
     BLACK = auto()
 
@@ -120,8 +124,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """Find node with the given element."""
         node = self._root
         while node and node.value != element:
-            node = node.left if node.value < element else node.right
-        
+            node = node.left if node.value < element else node.right # type: ignore[operator]
+
         return node
 
     def __contains__(self, element: object, /) -> bool:
@@ -137,7 +141,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        return self._find_node(element) is not None
+        return self._find_node(element) is not None # type: ignore[arg-type]
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -235,14 +239,14 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result: RedBlackTree(T | Q)() if isinstance(other, RedBlackTree) else set[T | Q]()
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
 
         for element in self:
             result.add(element)
-        
-        for element in other:
+
+        for element in other: # type: ignore[assignment]
             result.add(element)
-        
+
         return result
 
     def __and__(self, other: AbstractSet[object], /) -> RedBlackTree[T]:
@@ -258,12 +262,12 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         RedBlackTree[T]
             Red-black tree.
         """
-        result: RedBlackTree(T | Q)() if isinstance(other, RedBlackTree) else set[T | Q]()
+        result: RedBlackTree[T] = RedBlackTree()
 
         for element in result:
             if element in other:
                 result.add(element)
-            
+
         return result
 
     def __sub__(self, other: AbstractSet[object], /) -> RedBlackTree[T]:
@@ -279,12 +283,12 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         RedBlackTree[T]
             Red-black tree.
         """
-        result: RedBlackTree(T | Q)() if isinstance(other, RedBlackTree) else set[T | Q]()
+        result: RedBlackTree[T] = RedBlackTree()
 
         for element in self:
             if element not in other:
                 result.add(element)
-            
+
         return result
 
     @overload
@@ -306,17 +310,18 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result: RedBlackTree(T | Q)() if isinstance(other, RedBlackTree) else set[T | Q]()
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
 
-        for element in other:
-            element_new: T | Q = element
-            if element_new in result:
-                result.discard(element_new)
+        for element in self:
+            result.add(element)
+
+        for element in other: # type: ignore[assignment]
+            if element in self:
+                result.discard(element)
             else:
-                result.add(element_new)
+                result.add(element)
 
-        return result 
-
+        return result
 
     def __ior__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
@@ -333,7 +338,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """
         for element in other:
             self.add(element)
-        
+
         return self
 
     def __iand__(self, other: AbstractSet[object], /) -> Self:
@@ -352,7 +357,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         to_remove = [element for element in self if element not in other]
         for element in to_remove:
             self.discard(element)
-        
+
         return self
 
     def __isub__(self, other: AbstractSet[object], /) -> Self:
@@ -371,7 +376,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         to_remove = [element for element in self if element in other]
         for element in to_remove:
             self.discard(element)
-        
+
         return self
 
     def __ixor__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
@@ -392,7 +397,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
         for element in to_remove:
             self.discard(element)
-        
+
         for element in to_add:
             self.add(element)
 
@@ -416,9 +421,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
             right_child.left = node
             node.parent = right_child
-        
-        return
-    
+
+
     def _rotate_right(self, node: Node[T]) -> None:
         """Right rotate around node."""
         if left_child := node.left:
@@ -437,11 +441,13 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
             left_child.right = node
             node.parent = left_child
-        
-        return
+
 
     def _fix_insert(self, node: Node[T]) -> None:
         """Fix red-black properties after insertion."""
+        if node is None:
+            return
+
         if not node.parent:
             node.color = Color.BLACK
             return
@@ -450,30 +456,40 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             return
 
         parent = node.parent
-        grandparent = node.grandparent
+        grandparent = parent.parent
         uncle = node.uncle
 
         if uncle and uncle.color == Color.RED:
-            parent.color = Color.BLACK
-            grandparent.color = Color.RED
-            uncle.color = Color.BLACK
-            self._fix_insert(grandparent)
+            self._recolor_insert(parent, uncle, grandparent)
             return
-        
-        if grandparent:
-            if parent is grandparent.left:
-                if node is parent.right:
-                    self._rotate_left(parent)
-                    node, parent = parent, node               
-                self._rotate_right(grandparent)
-            elif parent is grandparent.right:
-                if node is parent.left:
-                    self._rotate_right(parent)
-                    node, parent = parent, node
-                self._rotate_left(grandparent)
 
-            parent.color = Color.BLACK
+        if grandparent:
+            self._rotate_insert(parent, node, grandparent)
+
+    def _recolor_insert(self, parent: Node[T], uncle: Node[T], grandparent: Node[T] | None) -> None:
+        """Recolor nodes when uncle is red."""
+        parent.color = Color.BLACK
+        if grandparent:
             grandparent.color = Color.RED
+        uncle.color = Color.BLACK
+        if grandparent:
+            self._fix_insert(grandparent)
+
+    def _rotate_insert(self, parent: Node[T], node: Node[T], grandparent: Node[T]) -> None:
+        """Rotate nodes when uncle is black."""
+        if parent is grandparent.left:
+            if node is parent.right:
+                self._rotate_left(parent)
+                node, parent = parent, node
+            self._rotate_right(grandparent)
+        else:
+            if node is parent.left:
+                self._rotate_right(parent)
+                node, parent = parent, node
+            self._rotate_left(grandparent)
+
+        parent.color = Color.BLACK
+        grandparent.color = Color.RED
 
     def add(self, element: T, /) -> None:
         """Add ``element`` to the set.
@@ -493,22 +509,23 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
         while current:
             parent = current
-            if element < current.value:
-                current = current.left
-            elif current < element:
-                current = current.right
+            if element < current.value: #  type: ignore[operator]
+                current = current.left # type: ignore[assignment]
+            elif current < element: # type: ignore[operator]
+                current = current.right # type: ignore[assignment]
             else:
                 return
-            
-        new_node = Node(element, color=Color.RED, parent=parent)
 
-        if element < parent.value:
-            parent.left = new_node
-        else:
-            parent.right = new_node
-        
-        self._size += 1
-        self._fix_insert(new_node)
+        if parent is not None:
+            new_node = Node(element, color=Color.RED, parent=parent)
+
+            if element < parent.value: # type: ignore[operator]
+                parent.left = new_node
+            else:
+                parent.right = new_node
+
+            self._size += 1
+            self._fix_insert(new_node)
 
     def _remove_node_with_one_or_zero_child(self, node: Node[T]) -> None:
         """Remove node that has one or less children."""
@@ -520,10 +537,15 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
                 node.parent.left = child
             else:
                 node.parent.right = child
-            
+
     def _remove_node_with_two_children(self, node: Node[T]) -> None:
         """Remove node that has two children."""
-        self._remove_node_with_one_or_zero_child(node.successor)
+        successor = node.successor
+        if successor is None:
+            return
+
+        node.value = successor.value
+        self._remove_node_with_one_or_zero_child(successor)
 
 
     def remove(self, element: T, /) -> None:
@@ -536,12 +558,12 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """
         if not (node := self._find_node(element)):
             raise KeyError(element)
-        
+
         if not node.left or not node.right:
             self._remove_node_with_one_or_zero_child(node)
         else:
             self._remove_node_with_two_children(node)
-        
+
         self._size -= 1
 
     def discard(self, element: T, /) -> None:
@@ -552,10 +574,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        try:
+        with suppress(KeyError):
             self.remove(element)
-        except KeyError:
-            pass
 
     def pop(self) -> T:
         """Remove and return an arbitrary element from the set.
@@ -568,7 +588,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         if not self._root:
             detail = f"pop from an empty {self.__class__.__name__}"
             raise KeyError(detail)
-        
+
         value = self._root.leftmost.value
         self.remove(value)
         return value
@@ -593,7 +613,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """
         if not isinstance(other, AbstractSet):
             return False
-        
+
         return self <= other <= self
 
     def __hash__(self) -> int:
@@ -625,9 +645,9 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         if self._root:
             current: Node[T] | None = self._root.leftmost
             while current:
-                yield current
+                yield current.value
                 current = current.successor
-            
+
         return
 
     def __reversed__(self) -> Iterator[T]:
@@ -645,7 +665,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         if self._root:
             current: Node[T] | None = self._root.rightmost
             while current:
-                yield current
+                yield current.value
                 current = current.predecessor
-            
+
         return
