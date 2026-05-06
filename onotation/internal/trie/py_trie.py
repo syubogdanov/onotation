@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableSet, Reversible
-from collections.abc import Set as AbstractSet
-from typing import Any, overload, Self, TypeVar
+from collections.abc import Iterable, Iterator, MutableSet, Reversible, Set as AbstractSet
+from typing import Any, Self, TypeVar, overload
 
 Q = TypeVar("Q")
 
