@@ -82,6 +82,8 @@ ignore = [
     "BLE001",  # Checks for `except` clauses that catch all exceptions.
     "D100",    # Missing docstring in public module.
     "D104",    # Missing docstring in public package.
+    "S101",    # allow asserts in tests
+    "PLR2004"  # allow magic numbers in tests
 ]
 select = ["ALL"]
 
