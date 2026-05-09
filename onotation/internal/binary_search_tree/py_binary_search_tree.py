@@ -279,7 +279,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         for element in self:
             result.add(element)
 
-        for element in other:
+        for element in other: # type: ignore[assignment]
             if element in result:
                 result.discard(element)
             else:
@@ -398,12 +398,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             else:
                 return
 
-    def _find_node(self, element: T) -> Node[T] | None:
+    def _find_node(self, element: object) -> Node[T] | None:
         """Find node with given element."""
         node = self._root
         while node and node.value != element:
             node = node.left if element < node.value else node.right  # type: ignore[operator]
-
         return node
 
     def remove(self, element: T, /) -> None:

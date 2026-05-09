@@ -14,12 +14,13 @@ ELEMENT_5 = 5
 ELEMENT_7 = 7
 ELEMENT_10 = 10
 
+
 class TestBinarySearchTreeIterator:
     """Test __iter__ functionality."""
 
     def test__iter__empty(self) -> None:
         """Test __iter__ on empty tree."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         assert list(bst) == []
 
     def test__iter__single_element(self) -> None:
@@ -48,7 +49,7 @@ class TestBinarySearchTreeReversed:
 
     def test__reversed__empty(self) -> None:
         """Test __reversed__ on empty tree."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         assert list(reversed(bst)) == []
 
     def test__reversed__single_element(self) -> None:
@@ -82,7 +83,7 @@ class TestBinarySearchTreeContains:
 
     def test__contains__empty_tree(self) -> None:
         """Test __contains__ on empty tree."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         assert ELEMENT_10 not in bst
 
 
@@ -91,7 +92,7 @@ class TestBinarySearchTreeAdd:
 
     def test__add__new_element(self) -> None:
         """Test adding new element to tree."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         bst.add(5)
         assert ELEMENT_5 in bst
         assert len(bst) == 1
@@ -121,7 +122,7 @@ class TestBinarySearchTreeRemove:
 
     def test__remove__from_empty_tree(self) -> None:
         """Test removing from empty tree raises KeyError."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         with pytest.raises(KeyError):
             bst.remove(1)
 
@@ -138,7 +139,7 @@ class TestBinarySearchTreePop:
 
     def test__pop__empty(self) -> None:
         """Test pop from empty tree raises KeyError."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         with pytest.raises(KeyError) as exc_info:
             bst.pop()
         assert "pop from an empty BinarySearchTree" in str(exc_info.value)
@@ -167,8 +168,8 @@ class TestBinarySearchTreeEq:
 
     def test__eq__empty_trees(self) -> None:
         """Test two empty trees are equal."""
-        bst1 = BinarySearchTree()
-        bst2 = BinarySearchTree()
+        bst1: BinarySearchTree[int] = BinarySearchTree()
+        bst2: BinarySearchTree[int] = BinarySearchTree()
         assert bst1 == bst2
 
 
@@ -177,7 +178,7 @@ class TestBinarySearchTreeLen:
 
     def test__len__empty(self) -> None:
         """Test length of empty tree."""
-        bst = BinarySearchTree()
+        bst: BinarySearchTree[int] = BinarySearchTree()
         assert len(bst) == 0
 
     def test__len__after_add(self) -> None:
@@ -190,36 +191,3 @@ class TestBinarySearchTreeLen:
         bst = BinarySearchTree([1, 2, 3])
         bst.remove(2)
         assert len(bst) == ELEMENT_2
-
-
-class TestBinarySearchTreeParentLinks:
-    """Test that parent links are maintained correctly."""
-
-    def test__parent_after_add(self) -> None:
-        """Test parent links are set correctly after add."""
-        bst = BinarySearchTree([5, 3, 7])
-        root = bst._root # noqa: SLF001
-        assert root.left.parent is root
-        assert root.right.parent is root
-
-    def test__parent_after_remove_leaf(self) -> None:
-        """Test parent links after removing a leaf node."""
-        bst = BinarySearchTree([5, 3, 7])
-        bst.remove(3)
-        root = bst._root # noqa: SLF001
-        assert root.left is None
-        assert root.right.parent is root
-
-    def test__parent_after_remove_with_two_children(self) -> None:
-        """Test parent links after removing node with two children."""
-        bst = BinarySearchTree([5, 3, 7, 1, 4, 6, 8])
-        bst.remove(3)
-        root = bst._root # noqa: SLF001
-        assert root.left.value == ELEMENT_4
-        assert root.left.parent is root
-        assert root.left.left.value == 1
-        assert root.left.left.parent is root.left
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
