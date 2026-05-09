@@ -124,7 +124,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """Find node with the given element."""
         node = self._root
         while node and node.value != element:
-            node = node.left if node.value < element else node.right # type: ignore[operator]
+            node = node.left if node.value < element else node.right  # type: ignore[operator]
 
         return node
 
@@ -141,7 +141,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        return self._find_node(element) is not None # type: ignore[arg-type]
+        return self._find_node(element) is not None  # type: ignore[arg-type]
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -244,7 +244,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         for element in self:
             result.add(element)
 
-        for element in other: # type: ignore[assignment]
+        for element in other:  # type: ignore[assignment]
             result.add(element)
 
         return result
@@ -315,7 +315,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         for element in self:
             result.add(element)
 
-        for element in other: # type: ignore[assignment]
+        for element in other:  # type: ignore[assignment]
             if element in self:
                 result.discard(element)
             else:
@@ -422,7 +422,6 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             right_child.left = node
             node.parent = right_child
 
-
     def _rotate_right(self, node: Node[T]) -> None:
         """Right rotate around node."""
         if left_child := node.left:
@@ -442,10 +441,9 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             left_child.right = node
             node.parent = left_child
 
-
     def _fix_insert(self, node: Node[T]) -> None:
         """Fix red-black properties after insertion."""
-        if node is None:
+        if not node:
             return
 
         if not node.parent:
@@ -509,17 +507,17 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
         while current:
             parent = current
-            if element < current.value: #  type: ignore[operator]
-                current = current.left # type: ignore[assignment]
-            elif current < element: # type: ignore[operator]
-                current = current.right # type: ignore[assignment]
+            if element < current.value:  #  type: ignore[operator]
+                current = current.left  # type: ignore[assignment]
+            elif current.value < element:  # type: ignore[operator]
+                current = current.right  # type: ignore[assignment]
             else:
                 return
 
-        if parent is not None:
+        if parent:
             new_node = Node(element, color=Color.RED, parent=parent)
 
-            if element < parent.value: # type: ignore[operator]
+            if element < parent.value:  # type: ignore[operator]
                 parent.left = new_node
             else:
                 parent.right = new_node
@@ -540,13 +538,9 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
     def _remove_node_with_two_children(self, node: Node[T]) -> None:
         """Remove node that has two children."""
-        successor = node.successor
-        if successor is None:
-            return
-
-        node.value = successor.value
-        self._remove_node_with_one_or_zero_child(successor)
-
+        if successor := node.successor:
+            node.value = successor.value
+            self._remove_node_with_one_or_zero_child(successor)
 
     def remove(self, element: T, /) -> None:
         """Remove ``element`` from the set.
@@ -648,8 +642,6 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
                 yield current.value
                 current = current.successor
 
-        return
-
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
 
@@ -667,5 +659,3 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             while current:
                 yield current.value
                 current = current.predecessor
-
-        return
