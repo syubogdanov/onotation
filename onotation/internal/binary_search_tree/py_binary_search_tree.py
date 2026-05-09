@@ -538,8 +538,6 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
                 yield current.value
                 current = current.successor
 
-        return
-
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
 
@@ -552,11 +550,9 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         -----
         * A descending order is guaranteed.
         """
-        if not self._root:
-            return
+        if self._root:
+            current: Node[T] | None = self._root.rightmost
 
-        current: Node[T] | None = self._root.rightmost
-
-        while current:
-            yield current.value
-            current = current.predecessor
+            while current:
+                yield current.value
+                current = current.predecessor
