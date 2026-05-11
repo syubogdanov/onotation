@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import random
+
 from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from random import _random
 from typing import Any, Self, TypeVar, overload
 
 
@@ -13,7 +14,13 @@ Q = TypeVar("Q")
 class CartesianTree(MutableSet[T], Reversible[T]):
     """The cartesian tree."""
 
-    def __init__(self, iterable: Iterable[T] = (), /, *, random: Callable[[], Any] = _random.random):
+    def __init__(
+        self,
+        iterable: Iterable[T] = (),
+        /,
+        *,
+        random: Callable[[], Any] = random.random,
+    ) -> None:
         """Initialize the object.
 
         Parameters
@@ -25,7 +32,7 @@ class CartesianTree(MutableSet[T], Reversible[T]):
             Default is `random.random` from standard library.
         """
         raise NotImplementedError
-    
+
     def __len__(self) -> int:
         """Return the number of elements in set (cardinality).
 
@@ -360,4 +367,3 @@ class CartesianTree(MutableSet[T], Reversible[T]):
         * A descending order is guaranteed.
         """
         raise NotImplementedError
-
