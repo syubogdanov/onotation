@@ -16,7 +16,7 @@ class Node(Generic[T]):
     """The RBT node."""
 
     value: T
-    is_red: bool = True
+    red_flg: bool = True
     parent: Node[T] | None = None
     left: Node[T] | None = None
     right: Node[T] | None = None
@@ -439,17 +439,17 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             return
 
         if not node.parent:
-            node.is_red = False
+            node.red_flg = False
             return
 
-        if not node.parent.is_red:
+        if not node.parent.red_flg:
             return
 
         parent = node.parent
         grandparent = parent.parent
         uncle = node.uncle
 
-        if uncle and uncle.is_red:
+        if uncle and uncle.red_flg:
             self._recolor_insert(parent, uncle, grandparent)
             return
 
@@ -458,10 +458,10 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
 
     def _recolor_insert(self, parent: Node[T], uncle: Node[T], grandparent: Node[T] | None) -> None:
         """Recolor nodes when uncle is red."""
-        parent.is_red = False
+        parent.red_flg = False
         if grandparent:
-            grandparent.is_red = True
-        uncle.is_red = False
+            grandparent.red_flg = True
+        uncle.red_flg = False
         if grandparent:
             self._fix_insert(grandparent)
 
@@ -478,8 +478,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
                 node, parent = parent, node
             self._rotate_left(grandparent)
 
-        parent.is_red = False
-        grandparent.is_red = True
+        parent.red_flg = False
+        grandparent.red_flg = True
 
     def add(self, element: T, /) -> None:
         """Add ``element`` to the set.
@@ -490,7 +490,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             Element.
         """
         if not self._root:
-            self._root = Node(element, is_red=False)
+            self._root = Node(element, red_flg=False)
             self._size = 1
             return
 
@@ -507,7 +507,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
                 return
 
         if parent:
-            new_node = Node(element, is_red=True, parent=parent)
+            new_node = Node(element, red_flg=True, parent=parent)
 
             if element < parent.value:  # type: ignore[operator]
                 parent.left = new_node
