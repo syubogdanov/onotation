@@ -7,14 +7,6 @@ from onotation.internal.binary_search_tree.py_binary_search_tree import (
 )
 
 
-ELEMENT_2 = 2
-ELEMENT_3 = 3
-ELEMENT_4 = 4
-ELEMENT_5 = 5
-ELEMENT_7 = 7
-ELEMENT_10 = 10
-
-
 class TestBinarySearchTreeIterator:
     """Test __iter__ functionality."""
 
@@ -74,17 +66,17 @@ class TestBinarySearchTreeContains:
     def test__contains__existing_element(self) -> None:
         """Test that existing element is found."""
         bst = BinarySearchTree([1, 2, 3])
-        assert ELEMENT_2 in bst
+        assert 2 in bst
 
     def test__contains__missing_element(self) -> None:
         """Test that missing element is not found."""
         bst = BinarySearchTree([1, 2, 3])
-        assert ELEMENT_4 not in bst
+        assert 4 not in bst
 
     def test__contains__empty_tree(self) -> None:
         """Test __contains__ on empty tree."""
         bst: BinarySearchTree[int] = BinarySearchTree()
-        assert ELEMENT_10 not in bst
+        assert 10 not in bst
 
 
 class TestBinarySearchTreeAdd:
@@ -94,7 +86,7 @@ class TestBinarySearchTreeAdd:
         """Test adding new element to tree."""
         bst: BinarySearchTree[int] = BinarySearchTree()
         bst.add(5)
-        assert ELEMENT_5 in bst
+        assert 5 in bst
         assert len(bst) == 1
 
     def test__add__duplicate_element(self) -> None:
@@ -111,8 +103,8 @@ class TestBinarySearchTreeRemove:
         """Test removing existing element."""
         bst = BinarySearchTree([1, 2, 3])
         bst.remove(2)
-        assert ELEMENT_2 not in bst
-        assert len(bst) == ELEMENT_2
+        assert 2 not in bst
+        assert len(bst) == 2
 
     def test__remove__missing_element(self) -> None:
         """Test removing missing element raises KeyError."""
@@ -135,7 +127,7 @@ class TestBinarySearchTreePop:
         bst = BinarySearchTree([1, 2, 3])
         result = bst.pop()
         assert result in [1, 2, 3]
-        assert len(bst) == ELEMENT_2
+        assert len(bst) == 2
 
     def test__pop__empty(self) -> None:
         """Test pop from empty tree raises KeyError."""
@@ -184,10 +176,10 @@ class TestBinarySearchTreeLen:
     def test__len__after_add(self) -> None:
         """Test length after adding elements."""
         bst = BinarySearchTree([1, 2, 3])
-        assert len(bst) == ELEMENT_3
+        assert len(bst) == 3
 
     def test__len__after_remove(self) -> None:
         """Test length after removing elements."""
         bst = BinarySearchTree([1, 2, 3])
         bst.remove(2)
-        assert len(bst) == ELEMENT_2
+        assert len(bst) == 3
