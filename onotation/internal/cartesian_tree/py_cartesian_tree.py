@@ -2,17 +2,21 @@ from __future__ import annotations
 
 import random
 
-from collections.abc import Callable, Iterable, Iterator, MutableSet, Reversible
-from collections.abc import Set as AbstractSet
-from typing import Any, Self, TypeVar, overload
+from collections.abc import Callable, Iterable, Iterator, MutableSequence, Reversible
+from typing import Any, TypeVar, overload
 
 
 T = TypeVar("T")
-Q = TypeVar("Q")
 
 
-class CartesianTree(MutableSet[T], Reversible[T]):
-    """The cartesian tree."""
+class CartesianTree(MutableSequence[T], Reversible[T]):
+    """Cartesian tree with implicit key (Treap).
+
+    Data structure that acts like a list (supports O(log(n)) split/merge operations)
+    while maintaining heap order by random priorities.
+    """
+
+    __slots__ = ("_random", "_root", "_size")
 
     def __init__(
         self,
@@ -29,7 +33,7 @@ class CartesianTree(MutableSet[T], Reversible[T]):
             Iterable.
         random : Callable[[], Any], optional
             Random function that returns priorities.
-            Default is `random.random` from standard library.
+            Default is ``random.random`` from standard library.
         """
         raise NotImplementedError
 
@@ -43,327 +47,127 @@ class CartesianTree(MutableSet[T], Reversible[T]):
         """
         raise NotImplementedError
 
-    def __contains__(self, element: object, /) -> bool:
-        """Test ``element`` for membership in the set.
+    @overload
+    def __getitem__(self, index: int, /) -> T: ...
 
-        Parameters
-        ----------
-        element : object
-            Element.
+    @overload
+    def __getitem__(self, index: slice, /) -> CartesianTree[T]: ...
 
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if present, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
+    def __getitem__(self, index: int | slice, /) -> T | CartesianTree[T]:
+        """Return self[key].
 
-    def isdisjoint(self, other: Iterable[object], /) -> bool:
-        """Return ``True`` if the set has no elements in common with ``other``.
-
-        Sets are disjoint if and only if their intersection is the empty set.
-
-        Parameters
-        ----------
-        other : Iterable[object]
-            Iterable.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if disjoint, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __le__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether every element in the set is in ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __lt__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether the set is a proper subset of ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if proper subset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __ge__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether every element in ``other`` is in the set.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if superset, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __gt__(self, other: AbstractSet[object], /) -> bool:
-        """Test whether the set is a proper superset of ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if proper superset, otherwise :obj:`False`.
+        Accpets both integer indices and slices.
+        Slice returns a new CartesianTree.
         """
         raise NotImplementedError
 
     @overload
-    def __or__(self, other: CartesianTree[Q], /) -> CartesianTree[T | Q]: ...
+    def __setitem__(self, index: int, value: T, /) -> None: ...
 
     @overload
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]: ...
+    def __setitem__(self, index: slice, value: Iterable[T], /) -> None: ...
 
-    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]:
-        """Return a new set with elements from the set and ``other``.
+    def __setitem__(self, index: int | slice, value: T | Iterable[T], /) -> None:
+        """Set self[key] to value.
 
-        Parameters
-        ----------
-        other : AbstractSet[Q]
-            Set.
-
-        Returns
-        -------
-        MutableSet[T | Q]
-            Set.
-        """
-        raise NotImplementedError
-
-    def __and__(self, other: AbstractSet[object], /) -> CartesianTree[T]:
-        """Return a new set with elements common to the set and ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        CartesianTree[T]
-            Cartesian tree.
-        """
-        raise NotImplementedError
-
-    def __sub__(self, other: AbstractSet[object], /) -> CartesianTree[T]:
-        """Return a new set with elements in the set that are not in ``other``.
-
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        CartesianTree[T]
-            Cartesian tree.
+        Supports both integer indices and slices.
         """
         raise NotImplementedError
 
     @overload
-    def __xor__(self, other: CartesianTree[Q], /) -> CartesianTree[T | Q]: ...
+    def __delitem__(self, index: int, /) -> None: ...
 
     @overload
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]: ...
+    def __delitem__(self, index: slice, /) -> None: ...
 
-    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[T | Q]:
-        """Return a new set with elements in either the set or ``other`` but not both.
+    def __delitem__(self, index: int | slice, /) -> None:
+        """Delete self[key]."""
+        raise NotImplementedError
+
+    def insert(self, index: int, value: T, /) -> None:
+        """Insert ``value`` before ``index``.
 
         Parameters
         ----------
-        other : AbstractSet[Q]
-            Set.
-
-        Returns
-        -------
-        MutableSet[T | Q]
-            Set.
+        index : int
+            Position before which to insert.
+        value : T
+            Element to insert.
         """
         raise NotImplementedError
 
-    def __ior__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, adding elements from ``other``.
+    def append(self, value: T, /) -> None:
+        """Append ``value`` to the end of the tree.
 
-        Parameters
-        ----------
-        other : AbstractSet[T]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
+        Equivalent to ``self.insert(len(self), value)``.
         """
         raise NotImplementedError
 
-    def __iand__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, keeping only elements found in it and ``other``.
+    def extend(self, iterable: Iterable[T], /) -> None:
+        """Extend the tree by appending elements from the iterable."""
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
+    def pop(self, index: int = -1, /) -> T:
+        """Remove and return item at ``index`` (default last).
 
-        Returns
-        -------
-        Self
-            self.
+        Raises IndexError if the tree is empty or index is out of range.
         """
         raise NotImplementedError
 
-    def __isub__(self, other: AbstractSet[object], /) -> Self:
-        """Update the set, removing elements found in ``other``.
+    def remove(self, value: T, /) -> None:
+        """Remove first occurrence of ``value``.
 
-        Parameters
-        ----------
-        other : AbstractSet[object]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def __ixor__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
-        """Update the set, keeping only elements found in either set, but not in both.
-
-        Parameters
-        ----------
-        other : AbstractSet[T]
-            Set.
-
-        Returns
-        -------
-        Self
-            self.
-        """
-        raise NotImplementedError
-
-    def add(self, element: T, /) -> None:
-        """Add ``element`` to the set.
-
-        Parameters
-        ----------
-        element : T
-            Element.
-        """
-        raise NotImplementedError
-
-    def remove(self, element: T, /) -> None:
-        """Remove ``element`` from the set.
-
-        Parameters
-        ----------
-        element : T
-            Element.
-        """
-        raise NotImplementedError
-
-    def discard(self, element: T, /) -> None:
-        """Remove ``element`` from the set if it is present.
-
-        Parameters
-        ----------
-        element : T
-            Element.
-        """
-        raise NotImplementedError
-
-    def pop(self) -> T:
-        """Remove and return an arbitrary element from the set.
-
-        Returns
-        -------
-        T
-            Element.
+        Raises ValueError if the value is not present.
         """
         raise NotImplementedError
 
     def clear(self) -> None:
-        """Remove all elements from the set."""
+        """Remove all items from the Cartesian tree."""
         raise NotImplementedError
 
-    def __eq__(self, other: object) -> bool:
-        """Test whether the set equals to ``other``.
+    def reverse(self) -> None:
+        """Reverse the Cartesian tree in place.
 
-        Parameters
-        ----------
-        other : object
-            Object.
-
-        Returns
-        -------
-        :class:`bool`
-            :obj:`True` if equal, otherwise :obj:`False`.
-        """
-        raise NotImplementedError
-
-    def __hash__(self) -> int:
-        """Return the hash.
-
-        Returns
-        -------
-        :class:`int`
-            Hash.
-
-        Notes
-        -----
-        * Not defined.
+        Note: this operation is expensive in a treap (O(n) or needs special handling).
         """
         raise NotImplementedError
 
     def __iter__(self) -> Iterator[T]:
-        """Return an iterator.
+        """Return an iterator over the tree in order.
 
-        Returns
-        -------
-        Iterator[T]
-            Iterator.
-
-        Notes
-        -----
-        * An ascending order is guaranteed.
+        Guaranteed in-order (left-to-right) traversal.
         """
         raise NotImplementedError
 
     def __reversed__(self) -> Iterator[T]:
-        """Return a reverse iterator.
+        """Return a reverse iterator over the tree.
 
-        Returns
-        -------
-        Iterator[T]
-            Iterator.
+        Guaranteed right-to-left traversal.
+        """
+        raise NotImplementedError
 
-        Notes
-        -----
-        * A descending order is guaranteed.
+    def index(self, value: T, start: int = 0, stop: int = -1, /) -> int:
+        """Return first index of ``value``.
+
+        Raises ValueError if the value is not present.
+        """
+        raise NotImplementedError
+
+    def count(self, value: T, /) -> int:
+        """Return number of occurrences of ``value``."""
+        raise NotImplementedError
+
+    def __eq__(self, other: object, /) -> bool:
+        """Return self == other.
+
+        Two CartesianTree instances are equal if they contain the same
+        elements in the same order.
+        """
+        raise NotImplementedError
+
+    def __hash__(self) -> int:
+        """Hash is not defined for mutable sequences.
+
+        Raises TypeError if called.
         """
         raise NotImplementedError
