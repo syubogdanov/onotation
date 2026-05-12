@@ -2,7 +2,7 @@
 
 import pytest
 
-from onotation.onotation.internal.trie.py_trie import Trie
+from onotation.internal.py_trie import Trie
 
 EMPTY_STRING = ""
 SINGLE_CHAR = "a"
@@ -15,6 +15,7 @@ WORD_A = "a"
 WORD_B = "b"
 WORD_AA = "aa"
 WORD_AB = "ab"
+NON_STRING_VALUES = [123, None, ["a"]]
 
 
 class TestTrieBasicOperations:
@@ -28,8 +29,9 @@ class TestTrieBasicOperations:
 
     def test_init_with_iterable(self) -> None:
         """Test initialization with an iterable of strings."""
-        t = Trie(["hello", "world"])
-        assert len(t) == 2
+        words = ["hello", "world"]
+        t = Trie(words)
+        assert len(t) == len(words)
         assert "hello" in t
         assert "world" in t
 
@@ -80,7 +82,7 @@ class TestTrieBasicOperations:
         assert WORD_HELLO not in t
 
     def test_discard_nonexistent_element(self) -> None:
-        """Test discarding a non‑existent element does nothing."""
+        """Test discarding a non-existent element does nothing."""
         t = Trie()
         t.discard(WORD_HELLO)
         assert len(t) == 0
@@ -107,11 +109,10 @@ class TestTrieBasicOperations:
         assert list(t) == []
 
     def test_contains_non_string(self) -> None:
-        """Test __contains__ with non‑string returns False."""
+        """Test __contains__ with non-string returns False."""
         t = Trie(["a"])
-        assert 123 not in t
-        assert None not in t
-        assert ["a"] not in t
+        for value in NON_STRING_VALUES:
+            assert value not in t
 
 
 class TestTrieIterator:
