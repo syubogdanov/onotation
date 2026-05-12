@@ -5,10 +5,11 @@ from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from typing import Any, Self, TypeVar, overload
 
+
 Q = TypeVar("Q")
 
 TERMINAL = None
-TERMINAL_VALUE: Node = {}      # пустой словарь как безопасный маркер
+TERMINAL_VALUE: Node = {}
 
 Node = dict[str | None, "Node"]
 
@@ -319,7 +320,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         if element == "":
             if TERMINAL not in self._root:
-                self._root[TERMINAL] = TERMINAL_VALUE   # значение – Node, ошибок типа нет
+                self._root[TERMINAL] = TERMINAL_VALUE
                 self._size += 1
             return
 
@@ -327,7 +328,7 @@ class Trie(MutableSet[str], Reversible[str]):
         for char in element:
             node = node.setdefault(char, {})
         if TERMINAL not in node:
-            node[TERMINAL] = TERMINAL_VALUE   # значение – Node
+            node[TERMINAL] = TERMINAL_VALUE
             self._size += 1
 
     def remove(self, element: str, /) -> None:
@@ -411,7 +412,7 @@ class Trie(MutableSet[str], Reversible[str]):
             return True
         if not isinstance(other, AbstractSet):
             return False
-        return self <= other and other <= self
+        return self <= other and other <= self  # noqa: PLR1716
 
     def __hash__(self) -> int:
         """Return the hash.
