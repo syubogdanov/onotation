@@ -1,10 +1,10 @@
-
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from typing import Self, cast
+
 
 BITS_PER_BLOCK = 64
 
@@ -86,7 +86,7 @@ class Bitset(MutableSet[int], Reversible[int]):
         if isinstance(other, Bitset):
             return all(
                 lhs & rhs == 0
-                for lhs, rhs in zip(self._blocks, other._blocks)
+                for lhs, rhs in zip(self._blocks, other._blocks, strict=False)  # noqa: SLF001
             )
         return all(element not in self for element in other)
 
@@ -206,7 +206,7 @@ class Bitset(MutableSet[int], Reversible[int]):
         if isinstance(other, Bitset):
             min_len = min(len(self._blocks), len(other._blocks))
             new_blocks = [
-                self._blocks[i] & other._blocks[i]
+                self._blocks[i] & other._blocks[i]  # noqa: SLF001
                 for i in range(min_len)
             ]
             result = Bitset()
@@ -322,7 +322,7 @@ class Bitset(MutableSet[int], Reversible[int]):
         if isinstance(other, Bitset):
             min_len = min(len(self._blocks), len(other._blocks))
             self._blocks = [
-                self._blocks[i] & other._blocks[i]
+                self._blocks[i] & other._blocks[i]  # noqa: SLF001
                 for i in range(min_len)
             ]
             self._trim()
