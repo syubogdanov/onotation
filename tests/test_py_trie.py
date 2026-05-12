@@ -1,8 +1,7 @@
 """Tests for Trie implementation."""
 
 import pytest
-
-from onotation.internal.py_trie import Trie
+from py_trie import Trie
 
 EMPTY_STRING = ""
 SINGLE_CHAR = "a"
