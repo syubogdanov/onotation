@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
+from contextlib import suppress
 from typing import Any, Self, TypeVar, overload
-
 
 Q = TypeVar("Q")
 
-_TERMINAL = None
+TERMINAL = None
+TERMINAL_VALUE: Node = {}      # пустой словарь как безопасный маркер
+
+Node = dict[str | None, "Node"]
 
 
 class Trie(MutableSet[str], Reversible[str]):
@@ -23,7 +26,7 @@ class Trie(MutableSet[str], Reversible[str]):
         iterable : Iterable[str]
             Iterable.
         """
-        self._root: dict[str | None, Any] = {}
+        self._root: Node = {}
         self._size = 0
         for item in iterable:
             self.add(item)
@@ -53,12 +56,12 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         if not isinstance(element, str):
             return False
-        node: dict[str | None, Any] = self._root
+        node: Node = self._root
         for char in element:
             if char not in node:
                 return False
             node = node[char]
-        return node.get(_TERMINAL, False)
+        return TERMINAL in node
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -156,14 +159,14 @@ class Trie(MutableSet[str], Reversible[str]):
         MutableSet[str | Q]
             Set.
         """
-        if isinstance(other, Trie):
-            result = Trie()
-            for elem in self:
-                result.add(elem)
-            for elem in other:
-                result.add(elem)
-            return result
-        return set(self) | set(other)
+        if not isinstance(other, Trie):
+            return set(self) | set(other)
+        result = Trie()
+        for elem in self:
+            result.add(elem)
+        for elem in other:
+            result.add(elem)
+        return result
 
     def __and__(self, other: AbstractSet[object], /) -> Trie:
         """Return a new set with elements common to the set and ``other``.
@@ -209,7 +212,7 @@ class Trie(MutableSet[str], Reversible[str]):
     @overload
     def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
-    def __xor__(self, other: AbstractSet[Any], /) -> Any:
+    def __xor__(self, other: AbstractSet[Any], /) -> MutableSet[str | Any]:
         """Return a new set with elements in either the set or ``other`` but not both.
 
         Parameters
@@ -222,16 +225,16 @@ class Trie(MutableSet[str], Reversible[str]):
         MutableSet[str | Q]
             Set.
         """
-        if isinstance(other, Trie):
-            result = Trie()
-            for elem in self:
-                if elem not in other:
-                    result.add(elem)
-            for elem in other:
-                if elem not in self:
-                    result.add(elem)
-            return result
-        return set(self) ^ set(other)
+        if not isinstance(other, Trie):
+            return set(self) ^ set(other)
+        result = Trie()
+        for elem in self:
+            if elem not in other:
+                result.add(elem)
+        for elem in other:
+            if elem not in self:
+                result.add(elem)
+        return result
 
     def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
@@ -315,16 +318,16 @@ class Trie(MutableSet[str], Reversible[str]):
             Element.
         """
         if element == "":
-            if _TERMINAL not in self._root:
-                self._root[_TERMINAL] = True
+            if TERMINAL not in self._root:
+                self._root[TERMINAL] = TERMINAL_VALUE   # значение – Node, ошибок типа нет
                 self._size += 1
             return
 
-        node: dict[str | None, Any] = self._root
+        node: Node = self._root
         for char in element:
             node = node.setdefault(char, {})
-        if _TERMINAL not in node:
-            node[_TERMINAL] = True
+        if TERMINAL not in node:
+            node[TERMINAL] = TERMINAL_VALUE   # значение – Node
             self._size += 1
 
     def remove(self, element: str, /) -> None:
@@ -334,27 +337,22 @@ class Trie(MutableSet[str], Reversible[str]):
         ----------
         element : str
             Element.
-
-        Raises
-        ------
-        KeyError
-            If the element is not present.
         """
-        node: dict[str | None, Any] = self._root
-        nodes: list[tuple[dict[str | None, Any], str]] = []
+        node: Node = self._root
+        nodes: list[tuple[Node, str]] = []
         for char in element:
             if char not in node:
                 raise KeyError(element)
             nodes.append((node, char))
             node = node[char]
 
-        if _TERMINAL not in node:
+        if TERMINAL not in node:
             raise KeyError(element)
 
-        del node[_TERMINAL]
+        del node[TERMINAL]
         self._size -= 1
 
-        while nodes and not node and _TERMINAL not in node:
+        while nodes and not node and TERMINAL not in node:
             parent, char = nodes.pop()
             del parent[char]
             node = parent
@@ -367,24 +365,8 @@ class Trie(MutableSet[str], Reversible[str]):
         element : str
             Element.
         """
-        node: dict[str | None, Any] = self._root
-        nodes: list[tuple[dict[str | None, Any], str]] = []
-        for char in element:
-            if char not in node:
-                return
-            nodes.append((node, char))
-            node = node[char]
-
-        if _TERMINAL not in node:
-            return
-
-        del node[_TERMINAL]
-        self._size -= 1
-
-        while nodes and not node and _TERMINAL not in node:
-            parent, char = nodes.pop()
-            del parent[char]
-            node = parent
+        with suppress(KeyError):
+            self.remove(element)
 
     def pop(self) -> str:
         """Remove and return an arbitrary element from the set.
@@ -399,10 +381,13 @@ class Trie(MutableSet[str], Reversible[str]):
         KeyError
             If the set is empty.
         """
-        for element in self:
-            self.remove(element)
-            return element
-        raise KeyError
+        iterator = iter(self)
+        try:
+            element = next(iterator)
+        except StopIteration:
+            raise KeyError from None
+        self.remove(element)
+        return element
 
     def clear(self) -> None:
         """Remove all elements from the set."""
@@ -426,9 +411,7 @@ class Trie(MutableSet[str], Reversible[str]):
             return True
         if not isinstance(other, AbstractSet):
             return False
-        return all(elem in other for elem in self) and all(
-            elem in self for elem in other
-        )
+        return self <= other and other <= self
 
     def __hash__(self) -> int:
         """Return the hash.
@@ -456,13 +439,13 @@ class Trie(MutableSet[str], Reversible[str]):
         -----
         * An ascending order is guaranteed.
         """
-        stack: list[tuple[dict[str | None, Any], str]] = [(self._root, "")]
+        stack: list[tuple[Node, str]] = [(self._root, "")]
         while stack:
             node, prefix = stack.pop()
-            if _TERMINAL in node:
+            if TERMINAL in node:
                 yield prefix
 
-            children = [char for char in node if char is not _TERMINAL]
+            children = [char for char in node if char is not TERMINAL]
             stack.extend(
                 (node[char], prefix + char) for char in sorted(children, reverse=True)
             )
@@ -479,13 +462,13 @@ class Trie(MutableSet[str], Reversible[str]):
         -----
         * A descending order is guaranteed.
         """
-        stack: list[tuple[dict[str | None, Any], str]] = [(self._root, "")]
+        stack: list[tuple[Node, str]] = [(self._root, "")]
         while stack:
             node, prefix = stack.pop()
-            if _TERMINAL in node:
+            if TERMINAL in node:
                 yield prefix
 
-            children = [char for char in node if char is not _TERMINAL]
+            children = [char for char in node if char is not TERMINAL]
             stack.extend(
                 (node[char], prefix + char) for char in sorted(children)
             )
