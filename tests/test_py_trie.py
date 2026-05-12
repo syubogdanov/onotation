@@ -1,7 +1,27 @@
 """Tests for Trie implementation."""
 
+import sys
+from pathlib import Path
+
 import pytest
-from py_trie import Trie
+
+# Пытаемся найти Trie в разных возможных местах
+sys.path.insert(0, str(Path(__file__).parent))  # добавляем папку с тестом в путь
+
+try:
+    from py_trie import Trie
+except ImportError:
+    try:
+        from onotation.internal.py_trie import Trie
+    except ImportError:
+        try:
+            from onotation.py_trie import Trie
+        except ImportError:
+            raise ImportError(
+                "Не удалось импортировать Trie. Убедитесь, что файл py_trie.py "
+                "находится в одной папке с тестом, или укажите правильный путь "
+                "импорта (например, from onotation.internal.trie import Trie)."
+            )
 
 EMPTY_STRING = ""
 SINGLE_CHAR = "a"
