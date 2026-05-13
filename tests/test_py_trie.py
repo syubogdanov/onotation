@@ -56,20 +56,22 @@ class TestTrieReversed:
         assert list(reversed(trie)) == ["hello"]
 
     def test__reversed__descending_order(self) -> None:
-        """Reversed iteration matches current implementation."""
+        """Reversed iteration follows reverse DFS order."""
         trie = Trie(["cat", "car", "dog", "apple"])
-        assert list(reversed(trie)) == ["apple", "car", "cat", "dog"]
+        assert list(reversed(trie)) == ["dog", "cat", "car", "apple"]
 
     def test__reversed__empty_string(self) -> None:
         """Empty string ordering in reversed iteration."""
         trie = Trie(["", "abc"])
-        assert list(reversed(trie)) == ["", "abc"]
+        assert list(reversed(trie)) == ["abc", ""]
 
     def test__reversed__large_dataset(self) -> None:
         """Large dataset reversed iteration."""
         words = [f"word{i}" for i in range(100)]
         trie = Trie(words)
-        assert list(reversed(trie)) == sorted(words)
+
+        # проверяем консистентность с обычным порядком
+        assert list(reversed(trie)) == list(trie)[::-1]
 
 
 class TestTrieContains:
@@ -104,9 +106,13 @@ class TestTrieContains:
         """Non-string values are always False."""
         trie = Trie(["abc"])
 
-        assert 123 not in trie
-        assert None not in trie
-        assert [] not in trie
+        non_string_int = 123
+        non_string_none = None
+        non_string_list = []
+
+        assert non_string_int not in trie
+        assert non_string_none not in trie
+        assert non_string_list not in trie
 
 
 class TestTrieAdd:
@@ -263,8 +269,11 @@ class TestTrieEq:
         """Comparison with non-trie."""
         trie = Trie(["abc"])
 
-        assert trie != 123
-        assert trie != "abc"
+        non_trie_int = 123
+        non_trie_str = "abc"
+
+        assert trie != non_trie_int
+        assert trie != non_trie_str
 
     def test__eq__empty_tries(self) -> None:
         """Empty tries are equal."""
@@ -285,7 +294,8 @@ class TestTrieLen:
     def test__len__after_add(self) -> None:
         """Length after add."""
         trie = Trie(["abc", "def"])
-        assert len(trie) == 2
+        expected_len = 2
+        assert len(trie) == expected_len
 
     def test__len__after_remove(self) -> None:
         """Length after remove."""
