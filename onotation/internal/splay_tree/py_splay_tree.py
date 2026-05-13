@@ -371,6 +371,54 @@ class SplayTree(MutableSet[T], Reversible[T]):
         self.remove(value)
         return value
 
+    def height(self) -> int:
+        """Return height of the tree."""
+        raise NotImplementedError
+
+    def is_empty(self) -> bool:
+        """Check whether tree is empty."""
+        raise NotImplementedError
+
+    def inorder(self) -> Iterator[T]:
+        """Iterate over tree in inorder traversal."""
+        raise NotImplementedError
+
+    def preorder(self) -> Iterator[T]:
+        """Iterate over tree in preorder traversal."""
+        raise NotImplementedError
+
+    def postorder(self) -> Iterator[T]:
+        """Iterate over tree in postorder traversal."""
+        raise NotImplementedError
+
+    def levelorder(self) -> Iterator[T]:
+        """Iterate over tree in level-order traversal."""
+        raise NotImplementedError
+
+    def min(self) -> T:
+        """Return minimum element."""
+        raise NotImplementedError
+
+    def max(self) -> T:
+        """Return maximum element."""
+        raise NotImplementedError
+
+    def successor(self, element: T) -> T | None:
+        """Return successor of element."""
+        raise NotImplementedError
+
+    def predecessor(self, element: T) -> T | None:
+        """Return predecessor of element."""
+        raise NotImplementedError
+
+    def contains(self, element: T) -> bool:
+        """Check whether tree contains element."""
+        raise NotImplementedError
+
+    def to_list(self) -> list[T]:
+        """Convert tree to sorted list."""
+        raise NotImplementedError
+
     def __repr__(self) -> str:
         """Return representation."""
         return f"{self.__class__.__name__}({list(self)!r})"
