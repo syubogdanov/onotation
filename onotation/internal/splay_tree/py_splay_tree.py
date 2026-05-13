@@ -225,7 +225,10 @@ class SplayTree(MutableSet[T], Reversible[T]):
                 self._splay(current)
                 return
 
-        assert parent is not None
+        if parent is None:
+            msg = "parent should not be None"
+            raise RuntimeError(msg)
+
         new_node = Node(element, parent=parent)
 
         if element < parent.value:           # type: ignore[operator]
@@ -285,7 +288,8 @@ class SplayTree(MutableSet[T], Reversible[T]):
     def minimum(self) -> T:
         """Return minimum element."""
         if self._root is None:
-            raise KeyError("tree is empty")
+            msg = "tree is empty"
+            raise KeyError(msg)
 
         node = self._root.leftmost
         self._splay(node)
@@ -294,7 +298,8 @@ class SplayTree(MutableSet[T], Reversible[T]):
     def maximum(self) -> T:
         """Return maximum element."""
         if self._root is None:
-            raise KeyError("tree is empty")
+            msg = "tree is empty"
+            raise KeyError(msg)
 
         node = self._root.rightmost
         self._splay(node)
@@ -335,7 +340,9 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     @classmethod
     def join(
-        cls, left: SplayTree[T], right: SplayTree[T]
+        cls,
+        left: SplayTree[T],
+        right: SplayTree[T],
     ) -> SplayTree[T]:
         """Join two trees (all elements in left <= all elements in right)."""
         if left._root is None:
@@ -356,7 +363,8 @@ class SplayTree(MutableSet[T], Reversible[T]):
     def pop(self) -> T:
         """Remove and return minimum element."""
         if self._root is None:
-            raise KeyError(f"pop from empty {self.__class__.__name__}")
+            msg = f"pop from empty {self.__class__.__name__}"
+            raise KeyError(msg)
 
         node = self._root.leftmost
         value = node.value
