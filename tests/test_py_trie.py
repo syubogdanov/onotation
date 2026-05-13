@@ -116,13 +116,13 @@ class TestTrieContains:
         """Non-string values are always False."""
         trie = Trie(["abc"])
 
-        non_string_int = 123
-        non_string_none = None
-        non_string_list = []
+        non_string_int: int = 123
+        non_string_none: object = None
+        non_string_list: list[int] = []
 
-        assert non_string_int not in trie
-        assert non_string_none not in trie
-        assert non_string_list not in trie
+        assert (non_string_int in trie) is False
+        assert (non_string_none in trie) is False
+        assert (non_string_list in trie) is False
 
 
 class TestTrieAdd:
@@ -279,8 +279,8 @@ class TestTrieEq:
         """Comparison with non-trie."""
         trie = Trie(["abc"])
 
-        non_trie_int = 123
-        non_trie_str = "abc"
+        non_trie_int: int = 123
+        non_trie_str: str = "abc"
 
         assert trie != non_trie_int
         assert trie != non_trie_str
@@ -304,7 +304,8 @@ class TestTrieLen:
     def test__len__after_add(self) -> None:
         """Length after add."""
         trie = Trie(["abc", "def"])
-        expected_len = 2
+
+        expected_len: int = 2
         assert len(trie) == expected_len
 
     def test__len__after_remove(self) -> None:
