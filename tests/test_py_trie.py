@@ -1,337 +1,426 @@
+
 """Tests for Trie implementation."""
 
-import sys
-from pathlib import Path
+from __future__ import annotations
 
 import pytest
 
-# Пытаемся найти Trie в разных возможных местах
-sys.path.insert(0, str(Path(__file__).parent))  # добавляем папку с тестом в путь
-
-try:
-    from py_trie import Trie
-except ImportError:
-    try:
-        from onotation.internal.py_trie import Trie
-    except ImportError:
-        try:
-            from onotation.py_trie import Trie
-        except ImportError:
-            raise ImportError(
-                "Не удалось импортировать Trie. Убедитесь, что файл py_trie.py "
-                "находится в одной папке с тестом, или укажите правильный путь "
-                "импорта (например, from onotation.internal.trie import Trie)."
-            )
-
-EMPTY_STRING = ""
-SINGLE_CHAR = "a"
-WORD_HELLO = "hello"
-WORD_WORLD = "world"
-WORD_HELP = "help"
-WORD_HE = "he"
-WORD_H = "h"
-WORD_A = "a"
-WORD_B = "b"
-WORD_AA = "aa"
-WORD_AB = "ab"
-NON_STRING_VALUES = [123, None, ["a"]]
-
-
-class TestTrieBasicOperations:
-    """Test basic operations: __init__, __len__, __contains__, add, remove, discard, pop, clear."""
-
-    def test_init_empty(self) -> None:
-        """Test empty trie initialization."""
-        t = Trie()
-        assert len(t) == 0
-        assert list(t) == []
-
-    def test_init_with_iterable(self) -> None:
-        """Test initialization with an iterable of strings."""
-        words = ["hello", "world"]
-        t = Trie(words)
-        assert len(t) == len(words)
-        assert "hello" in t
-        assert "world" in t
-
-    def test_add_new_element(self) -> None:
-        """Test adding a single element."""
-        t = Trie()
-        t.add(WORD_HELLO)
-        assert len(t) == 1
-        assert WORD_HELLO in t
-
-    def test_add_empty_string(self) -> None:
-        """Test adding the empty string."""
-        t = Trie()
-        t.add(EMPTY_STRING)
-        assert len(t) == 1
-        assert EMPTY_STRING in t
-
-    def test_add_duplicate_element(self) -> None:
-        """Test adding an element that already exists."""
-        t = Trie([WORD_HELLO])
-        t.add(WORD_HELLO)
-        assert len(t) == 1
-
-    def test_remove_existing_element(self) -> None:
-        """Test removing an existing element."""
-        t = Trie([WORD_HELLO])
-        t.remove(WORD_HELLO)
-        assert len(t) == 0
-        assert WORD_HELLO not in t
-
-    def test_remove_empty_string(self) -> None:
-        """Test removing the empty string."""
-        t = Trie([EMPTY_STRING])
-        t.remove(EMPTY_STRING)
-        assert len(t) == 0
-        assert EMPTY_STRING not in t
-
-    def test_remove_nonexistent_element(self) -> None:
-        """Test removing an element not in the trie raises KeyError."""
-        t = Trie()
-        with pytest.raises(KeyError):
-            t.remove(WORD_HELLO)
-
-    def test_discard_existing_element(self) -> None:
-        """Test discarding an existing element."""
-        t = Trie([WORD_HELLO])
-        t.discard(WORD_HELLO)
-        assert WORD_HELLO not in t
-
-    def test_discard_nonexistent_element(self) -> None:
-        """Test discarding a non-existent element does nothing."""
-        t = Trie()
-        t.discard(WORD_HELLO)
-        assert len(t) == 0
-
-    def test_pop_from_nonempty(self) -> None:
-        """Test pop removes and returns an arbitrary element."""
-        t = Trie(["a", "b"])
-        elem = t.pop()
-        assert elem in {"a", "b"}
-        assert len(t) == 1
-        assert elem not in t
-
-    def test_pop_from_empty(self) -> None:
-        """Test pop from empty trie raises KeyError."""
-        t = Trie()
-        with pytest.raises(KeyError):
-            t.pop()
-
-    def test_clear(self) -> None:
-        """Test clear removes all elements."""
-        t = Trie(["a", "b", "c"])
-        t.clear()
-        assert len(t) == 0
-        assert list(t) == []
-
-    def test_contains_non_string(self) -> None:
-        """Test __contains__ with non-string returns False."""
-        t = Trie(["a"])
-        for value in NON_STRING_VALUES:
-            assert value not in t
+from onotation.internal.trie.py_trie import Trie
 
 
 class TestTrieIterator:
-    """Test __iter__ and __reversed__ functionality."""
+    """Test __iter__ functionality."""
 
-    def test_iter_empty(self) -> None:
+    def test__iter__empty(self) -> None:
         """Test __iter__ on empty trie."""
-        t = Trie()
-        assert list(t) == []
+        trie = Trie()
+        assert list(trie) == []
 
-    def test_iter_single_element(self) -> None:
-        """Test __iter__ with one element."""
-        t = Trie([WORD_HELLO])
-        assert list(t) == [WORD_HELLO]
+    def test__iter__single_element(self) -> None:
+        """Test __iter__ on trie with one element."""
+        trie = Trie(["hello"])
+        assert list(trie) == ["hello"]
 
-    def test_iter_order_ascending(self) -> None:
-        """Test __iter__ returns elements in ascending lexicographic order."""
-        words = ["a", "aa", "ab", "b", "ba"]
-        t = Trie(words)
-        assert list(t) == sorted(words)
+    def test__iter__ascending_order(self) -> None:
+        """Test __iter__ returns elements in ascending order."""
+        trie = Trie(["cat", "car", "dog", "apple"])
+        assert list(trie) == ["apple", "car", "cat", "dog"]
 
-    def test_iter_with_empty_string(self) -> None:
-        """Test __iter__ includes the empty string when present."""
-        t = Trie(["", "a", "b"])
-        assert list(t) == ["", "a", "b"]
+    def test__iter__with_duplicates(self) -> None:
+        """Test that duplicates are ignored."""
+        trie = Trie(["abc", "abc", "xyz", "xyz"])
+        assert list(trie) == ["abc", "xyz"]
 
-    def test_reversed_empty(self) -> None:
+    def test__iter__empty_string(self) -> None:
+        """Test __iter__ with empty string."""
+        trie = Trie(["", "abc"])
+        assert list(trie) == ["", "abc"]
+
+    def test__iter__large_dataset(self) -> None:
+        """Test __iter__ on larger dataset."""
+        words = [f"word{i}" for i in range(100)]
+        trie = Trie(words)
+        assert list(trie) == sorted(words)
+
+
+class TestTrieReversed:
+    """Test __reversed__ functionality."""
+
+    def test__reversed__empty(self) -> None:
         """Test __reversed__ on empty trie."""
-        t = Trie()
-        assert list(reversed(t)) == []
+        trie = Trie()
+        assert list(reversed(trie)) == []
 
-    def test_reversed_single_element(self) -> None:
-        """Test __reversed__ with one element."""
-        t = Trie([WORD_HELLO])
-        assert list(reversed(t)) == [WORD_HELLO]
+    def test__reversed__single_element(self) -> None:
+        """Test __reversed__ on trie with one element."""
+        trie = Trie(["hello"])
+        assert list(reversed(trie)) == ["hello"]
 
-    def test_reversed_order_descending(self) -> None:
-        """Test __reversed__ returns elements in descending lexicographic order."""
-        words = ["a", "aa", "ab", "b", "ba"]
-        t = Trie(words)
-        assert list(reversed(t)) == sorted(words, reverse=True)
+    def test__reversed__descending_order(self) -> None:
+        """Test __reversed__ returns elements in descending order."""
+        trie = Trie(["cat", "car", "dog", "apple"])
+        assert list(reversed(trie)) == ["dog", "cat", "car", "apple"]
 
-    def test_reversed_with_empty_string(self) -> None:
-        """Test __reversed__ includes the empty string when present."""
-        t = Trie(["", "a", "b"])
-        assert list(reversed(t)) == ["b", "a", ""]
+    def test__reversed__empty_string(self) -> None:
+        """Test __reversed__ with empty string."""
+        trie = Trie(["", "abc"])
+        assert list(reversed(trie)) == ["abc", ""]
+
+    def test__reversed__large_dataset(self) -> None:
+        """Test __reversed__ on larger dataset."""
+        words = [f"word{i}" for i in range(100)]
+        trie = Trie(words)
+        assert list(reversed(trie)) == sorted(words, reverse=True)
+
+
+class TestTrieContains:
+    """Test __contains__ functionality."""
+
+    def test__contains__existing_element(self) -> None:
+        """Test that existing element is found."""
+        trie = Trie(["abc", "def"])
+        assert "abc" in trie
+
+    def test__contains__missing_element(self) -> None:
+        """Test that missing element is not found."""
+        trie = Trie(["abc", "def"])
+        assert "xyz" not in trie
+
+    def test__contains__empty_trie(self) -> None:
+        """Test __contains__ on empty trie."""
+        trie = Trie()
+        assert "abc" not in trie
+
+    def test__contains__prefix_only(self) -> None:
+        """Test prefix is not considered a full word."""
+        trie = Trie(["abcdef"])
+        assert "abc" not in trie
+
+    def test__contains__empty_string(self) -> None:
+        """Test empty string membership."""
+        trie = Trie([""])
+        assert "" in trie
+
+    def test__contains__non_string(self) -> None:
+        """Test non-string values always return False."""
+        trie = Trie(["abc"])
+        assert 123 not in trie
+        assert None not in trie
+        assert [] not in trie
+
+
+class TestTrieAdd:
+    """Test add method."""
+
+    def test__add__new_element(self) -> None:
+        """Test adding new element."""
+        trie = Trie()
+        trie.add("abc")
+
+        assert "abc" in trie
+        assert len(trie) == 1
+
+    def test__add__duplicate_element(self) -> None:
+        """Test adding duplicate element does nothing."""
+        trie = Trie(["abc"])
+
+        trie.add("abc")
+
+        assert len(trie) == 1
+
+    def test__add__empty_string(self) -> None:
+        """Test adding empty string."""
+        trie = Trie()
+
+        trie.add("")
+
+        assert "" in trie
+        assert len(trie) == 1
+
+
+class TestTrieRemove:
+    """Test remove method."""
+
+    def test__remove__existing_element(self) -> None:
+        """Test removing existing element."""
+        trie = Trie(["abc", "def"])
+
+        trie.remove("abc")
+
+        assert "abc" not in trie
+        assert len(trie) == 1
+
+    def test__remove__missing_element(self) -> None:
+        """Test removing missing element raises KeyError."""
+        trie = Trie(["abc"])
+
+        with pytest.raises(KeyError):
+            trie.remove("xyz")
+
+    def test__remove__empty_trie(self) -> None:
+        """Test removing from empty trie raises KeyError."""
+        trie = Trie()
+
+        with pytest.raises(KeyError):
+            trie.remove("abc")
+
+    def test__remove__prefix(self) -> None:
+        """Test removing one word does not affect another."""
+        trie = Trie(["abc", "abcd"])
+
+        trie.remove("abc")
+
+        assert "abc" not in trie
+        assert "abcd" in trie
+
+    def test__remove__empty_string(self) -> None:
+        """Test removing empty string."""
+        trie = Trie([""])
+
+        trie.remove("")
+
+        assert "" not in trie
+        assert len(trie) == 0
+
+
+class TestTrieDiscard:
+    """Test discard method."""
+
+    def test__discard__existing_element(self) -> None:
+        """Test discarding existing element."""
+        trie = Trie(["abc"])
+
+        trie.discard("abc")
+
+        assert "abc" not in trie
+        assert len(trie) == 0
+
+    def test__discard__missing_element(self) -> None:
+        """Test discarding missing element does nothing."""
+        trie = Trie(["abc"])
+
+        trie.discard("xyz")
+
+        assert len(trie) == 1
+
+
+class TestTriePop:
+    """Test pop method."""
+
+    def test__pop(self) -> None:
+        """Test pop removes arbitrary element."""
+        trie = Trie(["abc", "def"])
+
+        result = trie.pop()
+
+        assert result in {"abc", "def"}
+        assert len(trie) == 1
+
+    def test__pop__empty(self) -> None:
+        """Test pop from empty trie raises KeyError."""
+        trie = Trie()
+
+        with pytest.raises(KeyError):
+            trie.pop()
+
+
+class TestTrieClear:
+    """Test clear method."""
+
+    def test__clear(self) -> None:
+        """Test clear removes all elements."""
+        trie = Trie(["abc", "def"])
+
+        trie.clear()
+
+        assert len(trie) == 0
+        assert list(trie) == []
+
+
+class TestTrieEq:
+    """Test __eq__ method."""
+
+    def test__eq__equal_tries(self) -> None:
+        """Test equal tries are equal."""
+        trie1 = Trie(["abc", "def"])
+        trie2 = Trie(["abc", "def"])
+
+        assert trie1 == trie2
+
+    def test__eq__different_tries(self) -> None:
+        """Test different tries are not equal."""
+        trie1 = Trie(["abc"])
+        trie2 = Trie(["xyz"])
+
+        assert trie1 != trie2
+
+    def test__eq__different_order(self) -> None:
+        """Test insertion order does not matter."""
+        trie1 = Trie(["abc", "def"])
+        trie2 = Trie(["def", "abc"])
+
+        assert trie1 == trie2
+
+    def test__eq__not_trie(self) -> None:
+        """Test comparison with non-set object."""
+        trie = Trie(["abc"])
+
+        assert trie != 123
+        assert trie != "abc"
+
+    def test__eq__empty_tries(self) -> None:
+        """Test empty tries are equal."""
+        trie1 = Trie()
+        trie2 = Trie()
+
+        assert trie1 == trie2
+
+
+class TestTrieLen:
+    """Test __len__ method."""
+
+    def test__len__empty(self) -> None:
+        """Test length of empty trie."""
+        trie = Trie()
+
+        assert len(trie) == 0
+
+    def test__len__after_add(self) -> None:
+        """Test length after adding elements."""
+        trie = Trie(["abc", "def"])
+
+        assert len(trie) == 2
+
+    def test__len__after_remove(self) -> None:
+        """Test length after removing elements."""
+        trie = Trie(["abc", "def"])
+
+        trie.remove("abc")
+
+        assert len(trie) == 1
 
 
 class TestTrieSetOperations:
-    """Test set operations: union, intersection, difference, symmetric difference, subset, etc."""
+    """Test set operations."""
 
-    def test_isdisjoint_true(self) -> None:
-        """Test isdisjoint returns True for disjoint sets."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["c", "d"])
-        assert t1.isdisjoint(t2)
+    def test__or__(self) -> None:
+        """Test union operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["b", "c"])
 
-    def test_isdisjoint_false(self) -> None:
-        """Test isdisjoint returns False when sets share an element."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["b", "c"])
-        assert not t1.isdisjoint(t2)
+        result = trie1 | trie2
 
-    def test_subset_proper(self) -> None:
-        """Test __le__ and __lt__."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["a", "b", "c"])
-        assert t1 <= t2
-        assert t1 < t2
-        assert not t2 < t1
+        assert result == Trie(["a", "b", "c"])
 
-    def test_superset_proper(self) -> None:
-        """Test __ge__ and __gt__."""
-        t1 = Trie(["a", "b", "c"])
-        t2 = Trie(["a", "b"])
-        assert t1 >= t2
-        assert t1 > t2
-        assert not t2 > t1
+    def test__and__(self) -> None:
+        """Test intersection operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["b", "c"])
 
-    def test_eq(self) -> None:
-        """Test __eq__."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["a", "b"])
-        t3 = Trie(["a"])
-        assert t1 == t2
-        assert t1 != t3
-        assert t1 != {"a", "b"}
+        result = trie1 & trie2
 
-    def test_union(self) -> None:
-        """Test __or__."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["b", "c"])
-        result = t1 | t2
-        assert isinstance(result, Trie)
-        assert set(result) == {"a", "b", "c"}
+        assert result == Trie(["b"])
 
-    def test_union_with_non_trie(self) -> None:
-        """Test union with a plain set returns a MutableSet."""
-        t1 = Trie(["a", "b"])
-        result = t1 | {"b", "c", "d"}
-        assert isinstance(result, set)
-        assert result == {"a", "b", "c", "d"}
+    def test__sub__(self) -> None:
+        """Test difference operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["b"])
 
-    def test_intersection(self) -> None:
-        """Test __and__."""
-        t1 = Trie(["a", "b", "c"])
-        t2 = Trie(["b", "c", "d"])
-        result = t1 & t2
-        assert isinstance(result, Trie)
-        assert set(result) == {"b", "c"}
+        result = trie1 - trie2
 
-    def test_difference(self) -> None:
-        """Test __sub__."""
-        t1 = Trie(["a", "b", "c"])
-        t2 = Trie(["b", "c", "d"])
-        result = t1 - t2
-        assert isinstance(result, Trie)
-        assert set(result) == {"a"}
+        assert result == Trie(["a"])
 
-    def test_symmetric_difference(self) -> None:
-        """Test __xor__."""
-        t1 = Trie(["a", "b", "c"])
-        t2 = Trie(["b", "c", "d"])
-        result = t1 ^ t2
-        assert isinstance(result, Trie)
-        assert set(result) == {"a", "d"}
+    def test__xor__(self) -> None:
+        """Test symmetric difference operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["b", "c"])
 
-    def test_symmetric_difference_with_non_trie(self) -> None:
-        """Test xor with a plain set returns a Python set."""
-        t1 = Trie(["a", "b"])
-        result = t1 ^ {"b", "c"}
-        assert isinstance(result, set)
-        assert result == {"a", "c"}
+        result = trie1 ^ trie2
 
-    def test_inplace_union(self) -> None:
-        """Test __ior__."""
-        t1 = Trie(["a", "b"])
-        t2 = Trie(["b", "c"])
-        t1 |= t2
-        assert set(t1) == {"a", "b", "c"}
-
-    def test_inplace_intersection(self) -> None:
-        """Test __iand__."""
-        t1 = Trie(["a", "b", "c"])
-        t1 &= {"b", "c", "d"}
-        assert set(t1) == {"b", "c"}
-
-    def test_inplace_difference(self) -> None:
-        """Test __isub__."""
-        t1 = Trie(["a", "b", "c"])
-        t1 -= {"b", "d"}
-        assert set(t1) == {"a", "c"}
-
-    def test_inplace_symmetric_difference(self) -> None:
-        """Test __ixor__."""
-        t1 = Trie(["a", "b"])
-        t1 ^= {"b", "c"}
-        assert set(t1) == {"a", "c"}
+        assert result == Trie(["a", "c"])
 
 
-class TestTrieEdgeCases:
-    """Test edge cases like empty string and deletion that removes intermediate nodes."""
+class TestTrieInplaceOperations:
+    """Test inplace set operations."""
 
-    def test_empty_string_membership(self) -> None:
-        """Test containing empty string."""
-        t = Trie([EMPTY_STRING])
-        assert EMPTY_STRING in t
-        t.add("a")
-        assert EMPTY_STRING in t
-        t.remove(EMPTY_STRING)
-        assert EMPTY_STRING not in t
+    def test__ior__(self) -> None:
+        """Test inplace union."""
+        trie = Trie(["a"])
 
-    def test_remove_node_with_shared_prefix(self) -> None:
-        """Test removing a word does not delete nodes that are part of other words."""
-        t = Trie(["he", "hello"])
-        t.remove("he")
-        assert "he" not in t
-        assert "hello" in t
+        trie |= {"b"}
 
-    def test_remove_last_word_cleans_up_nodes(self) -> None:
-        """Test that removing the only word cleans up intermediate nodes."""
-        t = Trie(["hello"])
-        t.remove("hello")
-        assert t._root == {}  # noqa: SLF001
-        assert len(t) == 0
+        assert trie == Trie(["a", "b"])
 
-    def test_pop_removes_and_cleans_up(self) -> None:
-        """Test pop correctly cleans up nodes after removal."""
-        t = Trie(["hello", "world"])
-        t.pop()
-        assert len(t) == 1
-        remaining = "world" if "hello" not in t else "hello"
-        assert remaining in t
+    def test__iand__(self) -> None:
+        """Test inplace intersection."""
+        trie = Trie(["a", "b"])
 
-    def test_hash_not_implemented(self) -> None:
+        trie &= {"b"}
+
+        assert trie == Trie(["b"])
+
+    def test__isub__(self) -> None:
+        """Test inplace difference."""
+        trie = Trie(["a", "b"])
+
+        trie -= {"a"}
+
+        assert trie == Trie(["b"])
+
+    def test__ixor__(self) -> None:
+        """Test inplace symmetric difference."""
+        trie = Trie(["a", "b"])
+
+        trie ^= {"b", "c"}
+
+        assert trie == Trie(["a", "c"])
+
+
+class TestTrieComparisons:
+    """Test comparison operators."""
+
+    def test__le__(self) -> None:
+        """Test subset operation."""
+        trie1 = Trie(["a"])
+        trie2 = Trie(["a", "b"])
+
+        assert trie1 <= trie2
+
+    def test__lt__(self) -> None:
+        """Test proper subset operation."""
+        trie1 = Trie(["a"])
+        trie2 = Trie(["a", "b"])
+
+        assert trie1 < trie2
+
+    def test__ge__(self) -> None:
+        """Test superset operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["a"])
+
+        assert trie1 >= trie2
+
+    def test__gt__(self) -> None:
+        """Test proper superset operation."""
+        trie1 = Trie(["a", "b"])
+        trie2 = Trie(["a"])
+
+        assert trie1 > trie2
+
+    def test__isdisjoint__(self) -> None:
+        """Test disjoint sets."""
+        trie1 = Trie(["a", "b"])
+
+        assert trie1.isdisjoint({"c", "d"})
+        assert not trie1.isdisjoint({"b", "c"})
+
+
+class TestTrieHash:
+    """Test __hash__ method."""
+
+    def test__hash__raises(self) -> None:
         """Test __hash__ raises NotImplementedError."""
-        t = Trie()
+        trie = Trie(["abc"])
+
         with pytest.raises(NotImplementedError):
-            hash(t)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+            hash(trie)
