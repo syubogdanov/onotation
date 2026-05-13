@@ -7,6 +7,18 @@ import pytest
 from onotation.internal.splay_tree import SplayTree
 
 
+ZERO = 0
+ONE = 1
+TWO = 2
+THREE = 3
+FOUR = 4
+FIVE = 5
+TEN = 10
+TWENTY = 20
+THIRTY = 30
+MISSING = 999
+
+
 class TestSplayTreeInit:
     """Tests for initialization."""
 
@@ -14,23 +26,23 @@ class TestSplayTreeInit:
         """Empty initialization."""
         tree: SplayTree[int] = SplayTree()
 
-        assert len(tree) == 0
+        assert len(tree) == ZERO
         assert list(tree) == []
 
     def test__init__with_values(self) -> None:
         """Initialization with iterable."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert 1 in tree
-        assert 2 in tree
-        assert 3 in tree
+        assert ONE in tree
+        assert TWO in tree
+        assert THREE in tree
 
     def test__init__duplicates(self) -> None:
         """Duplicates are ignored."""
-        tree: SplayTree[int] = SplayTree([1, 1, 2, 2])
+        tree: SplayTree[int] = SplayTree([ONE, ONE, TWO, TWO])
 
-        assert len(tree) == 2
-        assert list(tree) == [1, 2]
+        assert len(tree) == TWO
+        assert list(tree) == [ONE, TWO]
 
 
 class TestSplayTreeAdd:
@@ -40,29 +52,29 @@ class TestSplayTreeAdd:
         """Add single element."""
         tree: SplayTree[int] = SplayTree()
 
-        tree.add(10)
+        tree.add(TEN)
 
-        assert 10 in tree
-        assert len(tree) == 1
+        assert TEN in tree
+        assert len(tree) == ONE
 
     def test__add_multiple(self) -> None:
         """Add multiple elements."""
         tree: SplayTree[int] = SplayTree()
 
-        tree.add(3)
-        tree.add(1)
-        tree.add(2)
+        tree.add(THREE)
+        tree.add(ONE)
+        tree.add(TWO)
 
-        assert list(tree) == [1, 2, 3]
+        assert list(tree) == [ONE, TWO, THREE]
 
     def test__add_duplicate(self) -> None:
         """Adding duplicate changes nothing."""
-        tree: SplayTree[int] = SplayTree([1, 2])
+        tree: SplayTree[int] = SplayTree([ONE, TWO])
 
-        tree.add(1)
+        tree.add(ONE)
 
-        assert len(tree) == 2
-        assert list(tree) == [1, 2]
+        assert len(tree) == TWO
+        assert list(tree) == [ONE, TWO]
 
 
 class TestSplayTreeRemove:
@@ -70,26 +82,26 @@ class TestSplayTreeRemove:
 
     def test__remove_existing(self) -> None:
         """Remove existing element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        tree.remove(2)
+        tree.remove(TWO)
 
-        assert 2 not in tree
-        assert list(tree) == [1, 3]
+        assert TWO not in tree
+        assert list(tree) == [ONE, THREE]
 
     def test__remove_missing(self) -> None:
         """Removing missing element raises KeyError."""
-        tree: SplayTree[int] = SplayTree([1])
+        tree: SplayTree[int] = SplayTree([ONE])
 
         with pytest.raises(KeyError):
-            tree.remove(999)
+            tree.remove(MISSING)
 
     def test__remove_empty(self) -> None:
         """Remove from empty tree."""
         tree: SplayTree[int] = SplayTree()
 
         with pytest.raises(KeyError):
-            tree.remove(1)
+            tree.remove(ONE)
 
 
 class TestSplayTreeDiscard:
@@ -97,19 +109,19 @@ class TestSplayTreeDiscard:
 
     def test__discard_existing(self) -> None:
         """Discard existing element."""
-        tree: SplayTree[int] = SplayTree([1, 2])
+        tree: SplayTree[int] = SplayTree([ONE, TWO])
 
-        tree.discard(1)
+        tree.discard(ONE)
 
-        assert list(tree) == [2]
+        assert list(tree) == [TWO]
 
     def test__discard_missing(self) -> None:
         """Discard missing element is safe."""
-        tree: SplayTree[int] = SplayTree([1])
+        tree: SplayTree[int] = SplayTree([ONE])
 
-        tree.discard(999)
+        tree.discard(MISSING)
 
-        assert list(tree) == [1]
+        assert list(tree) == [ONE]
 
 
 class TestSplayTreePop:
@@ -117,12 +129,12 @@ class TestSplayTreePop:
 
     def test__pop(self) -> None:
         """Pop minimum element."""
-        tree: SplayTree[int] = SplayTree([20, 10, 30])
+        tree: SplayTree[int] = SplayTree([TWENTY, TEN, THIRTY])
 
         value = tree.pop()
 
-        assert value == 10
-        assert list(tree) == [20, 30]
+        assert value == TEN
+        assert list(tree) == [TWENTY, THIRTY]
 
     def test__pop_empty(self) -> None:
         """Pop from empty tree raises KeyError."""
@@ -137,11 +149,11 @@ class TestSplayTreeClear:
 
     def test__clear(self) -> None:
         """Clear removes all elements."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
         tree.clear()
 
-        assert len(tree) == 0
+        assert len(tree) == ZERO
         assert list(tree) == []
 
 
@@ -150,15 +162,15 @@ class TestSplayTreeContains:
 
     def test__contains_existing(self) -> None:
         """Existing element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert 2 in tree
+        assert TWO in tree
 
     def test__contains_missing(self) -> None:
         """Missing element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert 999 not in tree
+        assert MISSING not in tree
 
 
 class TestSplayTreeFind:
@@ -166,15 +178,15 @@ class TestSplayTreeFind:
 
     def test__find_existing(self) -> None:
         """Find existing element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert tree.find(2) == 2
+        assert tree.find(TWO) == TWO
 
     def test__find_missing(self) -> None:
         """Find missing element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert tree.find(999) is None
+        assert tree.find(MISSING) is None
 
 
 class TestSplayTreeIter:
@@ -188,9 +200,9 @@ class TestSplayTreeIter:
 
     def test__iter_sorted(self) -> None:
         """Iteration is sorted."""
-        tree: SplayTree[int] = SplayTree([5, 1, 3, 2])
+        tree: SplayTree[int] = SplayTree([FIVE, ONE, THREE, TWO])
 
-        assert list(tree) == [1, 2, 3, 5]
+        assert list(tree) == [ONE, TWO, THREE, FIVE]
 
 
 class TestSplayTreeReversed:
@@ -204,9 +216,9 @@ class TestSplayTreeReversed:
 
     def test__reversed_order(self) -> None:
         """Descending iteration."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3, 4])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE, FOUR])
 
-        assert list(reversed(tree)) == [4, 3, 2, 1]
+        assert list(reversed(tree)) == [FOUR, THREE, TWO, ONE]
 
 
 class TestSplayTreeMinimum:
@@ -214,9 +226,9 @@ class TestSplayTreeMinimum:
 
     def test__minimum(self) -> None:
         """Return minimum element."""
-        tree: SplayTree[int] = SplayTree([3, 1, 2])
+        tree: SplayTree[int] = SplayTree([THREE, ONE, TWO])
 
-        assert tree.minimum() == 1
+        assert tree.minimum() == ONE
 
     def test__minimum_empty(self) -> None:
         """Minimum on empty tree raises KeyError."""
@@ -231,9 +243,9 @@ class TestSplayTreeMaximum:
 
     def test__maximum(self) -> None:
         """Return maximum element."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE])
 
-        assert tree.maximum() == 3
+        assert tree.maximum() == THREE
 
     def test__maximum_empty(self) -> None:
         """Maximum on empty tree raises KeyError."""
@@ -248,18 +260,18 @@ class TestSplayTreeSplit:
 
     def test__split(self) -> None:
         """Split tree into two trees."""
-        tree: SplayTree[int] = SplayTree([1, 2, 3, 4])
+        tree: SplayTree[int] = SplayTree([ONE, TWO, THREE, FOUR])
 
-        left, right = tree.split(2)
+        left, right = tree.split(TWO)
 
-        assert list(left) == [1, 2]
-        assert list(right) == [3, 4]
+        assert list(left) == [ONE, TWO]
+        assert list(right) == [THREE, FOUR]
 
     def test__split_empty(self) -> None:
         """Split empty tree."""
         tree: SplayTree[int] = SplayTree()
 
-        left, right = tree.split(1)
+        left, right = tree.split(ONE)
 
         assert list(left) == []
         assert list(right) == []
@@ -270,30 +282,30 @@ class TestSplayTreeJoin:
 
     def test__join(self) -> None:
         """Join two trees."""
-        left: SplayTree[int] = SplayTree([1, 2])
-        right: SplayTree[int] = SplayTree([3, 4])
+        left: SplayTree[int] = SplayTree([ONE, TWO])
+        right: SplayTree[int] = SplayTree([THREE, FOUR])
 
         result = SplayTree.join(left, right)
 
-        assert list(result) == [1, 2, 3, 4]
+        assert list(result) == [ONE, TWO, THREE, FOUR]
 
     def test__join_left_empty(self) -> None:
         """Join with empty left tree."""
         left: SplayTree[int] = SplayTree()
-        right: SplayTree[int] = SplayTree([1, 2])
+        right: SplayTree[int] = SplayTree([ONE, TWO])
 
         result = SplayTree.join(left, right)
 
-        assert list(result) == [1, 2]
+        assert list(result) == [ONE, TWO]
 
     def test__join_right_empty(self) -> None:
         """Join with empty right tree."""
-        left: SplayTree[int] = SplayTree([1, 2])
+        left: SplayTree[int] = SplayTree([ONE, TWO])
         right: SplayTree[int] = SplayTree()
 
         result = SplayTree.join(left, right)
 
-        assert list(result) == [1, 2]
+        assert list(result) == [ONE, TWO]
 
 
 class TestSplayTreeRepr:
@@ -301,6 +313,6 @@ class TestSplayTreeRepr:
 
     def test__repr(self) -> None:
         """Representation format."""
-        tree: SplayTree[int] = SplayTree([1, 2])
+        tree: SplayTree[int] = SplayTree([ONE, TWO])
 
         assert repr(tree) == "SplayTree([1, 2])"
