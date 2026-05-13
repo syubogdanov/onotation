@@ -116,13 +116,13 @@ class TestTrieContains:
         """Non-string values are always False."""
         trie = Trie(["abc"])
 
-        non_string_int: int = 123
-        non_string_none: object = None
-        non_string_list: list[int] = []
+        non_string_int = 123
+        non_string_none = None
+        non_string_list = []
 
-        assert (non_string_int in trie) is False
-        assert (non_string_none in trie) is False
-        assert (non_string_list in trie) is False
+        assert non_string_int not in trie  # type: ignore[operator]
+        assert non_string_none not in trie  # type: ignore[operator]
+        assert non_string_list not in trie  # type: ignore[operator]
 
 
 class TestTrieAdd:
@@ -282,8 +282,8 @@ class TestTrieEq:
         non_trie_int: int = 123
         non_trie_str: str = "abc"
 
-        assert trie != non_trie_int
-        assert trie != non_trie_str
+        assert trie != non_trie_int  # type: ignore[comparison-overlap]
+        assert trie != non_trie_str  # type: ignore[comparison-overlap]
 
     def test__eq__empty_tries(self) -> None:
         """Empty tries are equal."""
