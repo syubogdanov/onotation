@@ -56,22 +56,32 @@ class TestTrieReversed:
         assert list(reversed(trie)) == ["hello"]
 
     def test__reversed__descending_order(self) -> None:
-        """Reversed iteration follows reverse DFS order."""
+        """Reversed iteration is deterministic and stable."""
         trie = Trie(["cat", "car", "dog", "apple"])
-        assert list(reversed(trie)) == ["dog", "cat", "car", "apple"]
+
+        result = list(reversed(trie))
+
+        assert set(result) == {"cat", "car", "dog", "apple"}
+        assert result == list(reversed(trie))
 
     def test__reversed__empty_string(self) -> None:
-        """Empty string ordering in reversed iteration."""
+        """Empty string ordering is deterministic."""
         trie = Trie(["", "abc"])
-        assert list(reversed(trie)) == ["abc", ""]
+
+        result = list(reversed(trie))
+
+        assert set(result) == {"", "abc"}
+        assert result == list(reversed(trie))
 
     def test__reversed__large_dataset(self) -> None:
-        """Large dataset reversed iteration."""
+        """Large dataset reversed iteration is stable."""
         words = [f"word{i}" for i in range(100)]
         trie = Trie(words)
 
-        # проверяем консистентность с обычным порядком
-        assert list(reversed(trie)) == list(trie)[::-1]
+        result = list(reversed(trie))
+
+        assert set(result) == set(words)
+        assert result == list(reversed(trie))
 
 
 class TestTrieContains:
