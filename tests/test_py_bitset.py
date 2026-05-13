@@ -171,7 +171,6 @@ class TestBitsetContains:
 
     def test__contains_non_int(self) -> None:
         """Non-int values are always False."""
-
         bitset = Bitset([V1, V2, V3])
 
         # mypy-safe checks (no type: ignore needed)
