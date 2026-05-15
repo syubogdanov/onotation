@@ -26,9 +26,9 @@ class Node(Generic[T]):
         self.size = 1 + _get_size(self.left) + _get_size(self.right)
 
 
-    def _get_size(node: Node[T] | None) -> int:
-        """Return size of subtree."""
-        return node.size if node is not None else 0
+def _get_size(node: Node[T] | None) -> int:
+    """Return size of subtree."""
+    return node.size if node is not None else 0
 
 
 class CartesianTree(MutableSequence[T], Reversible[T], Generic[T]):
