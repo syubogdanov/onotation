@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Generic, Self, TypeVar, overload
+from typing import Generic, Self, TypeVar, assert_never, overload
 
 
 T = TypeVar("T")
@@ -279,7 +279,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         for element in self:
             result.add(element)
 
-        for element in other: # type: ignore[assignment]
+        for element in other:  # type: ignore[assignment]
             if element in result:
                 result.discard(element)
             else:
@@ -433,9 +433,8 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             return
 
         successor = node.successor
-        exception = "unreacheble"
         if successor is None:
-            raise RuntimeError(exception)
+            assert_never(successor)
 
         node.value = successor.value
 
@@ -500,7 +499,7 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
             :obj:`True` if equal, otherwise :obj:`False`.
         """
         if not isinstance(other, AbstractSet):
-            return False
+            return NotImplemented
 
         return self <= other <= self
 
