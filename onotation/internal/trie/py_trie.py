@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
-from typing import Self, TypeVar, overload, cast
+from typing import Self, TypeVar, cast, overload
 
 
 Q = TypeVar("Q")
@@ -160,14 +160,14 @@ class Trie(MutableSet[str], Reversible[str]):
             Set.
         """
         if not isinstance(other, Trie):
-            return cast(MutableSet[str | Q], set(self) | set(cast(Iterable[Q], other)))
-        other_trie = cast(Trie, other)
+            return cast("MutableSet[str | Q]", set(self) | set(cast("Iterable[Q]", other)))
+        other_trie = cast("Trie", other)
         result = Trie()
         for elem in self:
             result.add(elem)
         for elem in other_trie:
             result.add(elem)
-        return cast(MutableSet[str | Q], result)
+        return cast("MutableSet[str | Q]", result)
 
     def __and__(self, other: AbstractSet[object], /) -> Trie:
         """Return a new set with elements common to the set and ``other``.
@@ -227,8 +227,8 @@ class Trie(MutableSet[str], Reversible[str]):
             Set.
         """
         if not isinstance(other, Trie):
-            return cast(MutableSet[str | Q], set(self) ^ set(cast(Iterable[Q], other)))
-        other_trie = cast(Trie, other)
+            return cast("MutableSet[str | Q]", set(self) ^ set(cast("Iterable[Q]", other)))
+        other_trie = cast("Trie", other)
         result = Trie()
         for elem in self:
             if elem not in other_trie:
@@ -236,7 +236,7 @@ class Trie(MutableSet[str], Reversible[str]):
         for elem in other_trie:
             if elem not in self:
                 result.add(elem)
-        return cast(MutableSet[str | Q], result)
+        return cast("MutableSet[str | Q]", result)
 
     def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
