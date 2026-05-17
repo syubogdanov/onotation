@@ -3,13 +3,12 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
-from typing import Any, Self, TypeVar, overload
+from typing import Self, TypeVar, overload, cast
 
 
 Q = TypeVar("Q")
 
 TERMINAL = None
-TERMINAL_VALUE: Node = {}
 
 Node = dict[str | None, "Node"]
 
@@ -57,7 +56,7 @@ class Trie(MutableSet[str], Reversible[str]):
         """
         if not isinstance(element, str):
             return False
-        node: Node = self._root
+        node = self._root
         for char in element:
             if char not in node:
                 return False
@@ -147,7 +146,7 @@ class Trie(MutableSet[str], Reversible[str]):
     @overload
     def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
-    def __or__(self, other: AbstractSet[Any], /) -> Any:
+    def __or__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements from the set and ``other``.
 
         Parameters
@@ -161,13 +160,14 @@ class Trie(MutableSet[str], Reversible[str]):
             Set.
         """
         if not isinstance(other, Trie):
-            return set(self) | set(other)
+            return cast(MutableSet[str | Q], set(self) | set(cast(Iterable[Q], other)))
+        other_trie = cast(Trie, other)
         result = Trie()
         for elem in self:
             result.add(elem)
-        for elem in other:
+        for elem in other_trie:
             result.add(elem)
-        return result
+        return cast(MutableSet[str | Q], result)
 
     def __and__(self, other: AbstractSet[object], /) -> Trie:
         """Return a new set with elements common to the set and ``other``.
@@ -213,7 +213,7 @@ class Trie(MutableSet[str], Reversible[str]):
     @overload
     def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]: ...
 
-    def __xor__(self, other: AbstractSet[Any], /) -> MutableSet[str | Any]:
+    def __xor__(self, other: AbstractSet[Q], /) -> MutableSet[str | Q]:
         """Return a new set with elements in either the set or ``other`` but not both.
 
         Parameters
@@ -227,15 +227,16 @@ class Trie(MutableSet[str], Reversible[str]):
             Set.
         """
         if not isinstance(other, Trie):
-            return set(self) ^ set(other)
+            return cast(MutableSet[str | Q], set(self) ^ set(cast(Iterable[Q], other)))
+        other_trie = cast(Trie, other)
         result = Trie()
         for elem in self:
-            if elem not in other:
+            if elem not in other_trie:
                 result.add(elem)
-        for elem in other:
+        for elem in other_trie:
             if elem not in self:
                 result.add(elem)
-        return result
+        return cast(MutableSet[str | Q], result)
 
     def __ior__(self, other: AbstractSet[str], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
@@ -318,17 +319,11 @@ class Trie(MutableSet[str], Reversible[str]):
         element : str
             Element.
         """
-        if element == "":
-            if TERMINAL not in self._root:
-                self._root[TERMINAL] = TERMINAL_VALUE
-                self._size += 1
-            return
-
         node: Node = self._root
         for char in element:
             node = node.setdefault(char, {})
         if TERMINAL not in node:
-            node[TERMINAL] = TERMINAL_VALUE
+            node[TERMINAL] = {}
             self._size += 1
 
     def remove(self, element: str, /) -> None:
@@ -411,7 +406,7 @@ class Trie(MutableSet[str], Reversible[str]):
         if self is other:
             return True
         if not isinstance(other, AbstractSet):
-            return False
+            return NotImplemented
         return self <= other and other <= self  # noqa: PLR1716
 
     def __hash__(self) -> int:
