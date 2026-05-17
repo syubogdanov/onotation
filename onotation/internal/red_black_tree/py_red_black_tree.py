@@ -598,7 +598,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             :obj:`True` if equal, otherwise :obj:`False`.
         """
         if not isinstance(other, AbstractSet):
-            return False
+            return NotImplemented
 
         return self <= other <= self
 
