@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Generic, TypeVar, Self, cast
+from typing import Generic, Self, TypeVar, cast
 
 
 T = TypeVar("T")
@@ -203,6 +203,80 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
         return None
 
+    def find(self, element: object, /) -> T | None:
+        """Return element if found, else None."""
+        node = self._find_node(element)
+        return node.value if node is not None else None
+
+    def minimum(self) -> T:
+        """Return minimum element."""
+        if self._root is None:
+            msg = "tree is empty"
+            raise KeyError(msg)
+        node = self._root.leftmost
+        self._splay(node)
+        return node.value
+
+    def maximum(self) -> T:
+        """Return maximum element."""
+        if self._root is None:
+            msg = "tree is empty"
+            raise KeyError(msg)
+        node = self._root.rightmost
+        self._splay(node)
+        return node.value
+
+    def split(self, pivot: T, /) -> tuple[SplayTree[T], SplayTree[T]]:
+        """Split tree into left (<= pivot) and right (> pivot)."""
+        left_tree: SplayTree[T] = SplayTree()
+        right_tree: SplayTree[T] = SplayTree()
+
+        if self._root is None:
+            return left_tree, right_tree
+
+        self._find_node(pivot)
+
+        if self._root is None:
+            return left_tree, right_tree
+
+        root = self._root
+
+        if root.value <= pivot:  # type: ignore[operator]
+            left_tree._root = root
+            right_tree._root = root.right
+            if right_tree._root:
+                right_tree._root.parent = None
+            root.right = None
+        else:
+            right_tree._root = root
+            left_tree._root = root.left
+            if left_tree._root:
+                left_tree._root.parent = None
+            root.left = None
+
+        left_tree._size = len(left_tree)
+        right_tree._size = len(right_tree)
+
+        return left_tree, right_tree
+
+    @classmethod
+    def join(cls, left: SplayTree[T], right: SplayTree[T]) -> SplayTree[T]:
+        """Join two trees (all elements in left <= all in right)."""
+        if left._root is None:
+            return right
+        if right._root is None:
+            return left
+
+        maximum = left._root.rightmost
+        left._splay(maximum)
+
+        maximum.right = right._root
+        if right._root:
+            right._root.parent = maximum
+
+        left._size += right._size
+        return left
+
     def add(self, element: T, /) -> None:
         """Insert element into tree."""
         if self._root is None:
@@ -316,14 +390,16 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return self >= other and any(element not in other for element in self)
 
     def __or__(self, other: AbstractSet[object], /) -> MutableSet[T]:
+        """Return union as new set."""
         if not isinstance(other, SplayTree):
-            return set(self) | set(cast(Iterable[T], other))
+            return set(self) | set(cast("Iterable[T]", other))
         result = SplayTree(self)
         for elem in other:
             result.add(elem)
         return result
 
     def __and__(self, other: AbstractSet[object], /) -> SplayTree[T]:
+        """Return intersection as new SplayTree."""
         result: SplayTree[T]
         if not isinstance(other, SplayTree):
             result = SplayTree()
@@ -338,6 +414,7 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return result
 
     def __sub__(self, other: AbstractSet[object], /) -> SplayTree[T]:
+        """Return difference as new SplayTree."""
         result: SplayTree[T]
         if not isinstance(other, SplayTree):
             result = SplayTree()
@@ -352,8 +429,9 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return result
 
     def __xor__(self, other: AbstractSet[object], /) -> MutableSet[T]:
+        """Return symmetric difference as new set."""
         if not isinstance(other, SplayTree):
-            return set(self) ^ set(cast(Iterable[T], other))
+            return set(self) ^ set(cast("Iterable[T]", other))
         result: SplayTree[T] = SplayTree()
         for elem in self:
             if elem not in other:
@@ -364,23 +442,27 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return result
 
     def __ior__(self, other: AbstractSet[object], /) -> Self:
-        for elem in cast(Iterable[T], other):
+        """Update set with union of other."""
+        for elem in cast("Iterable[T]", other):
             self.add(elem)
         return self
 
     def __iand__(self, other: AbstractSet[object], /) -> Self:
+        """Keep only elements also in other."""
         to_remove = [elem for elem in self if elem not in other]
         for elem in to_remove:
             self.discard(elem)
         return self
 
     def __isub__(self, other: AbstractSet[object], /) -> Self:
+        """Remove elements found in other."""
         for elem in other:
             self.discard(elem)  # type: ignore[arg-type]
         return self
 
     def __ixor__(self, other: AbstractSet[object], /) -> Self:
-        for elem in cast(Iterable[T], other):
+        """Update with symmetric difference."""
+        for elem in cast("Iterable[T]", other):
             if elem in self:
                 self.remove(elem)
             else:
@@ -388,6 +470,7 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return self
 
     def __eq__(self, other: object) -> bool:
+        """Compare equality with other set."""
         if self is other:
             return True
         if not isinstance(other, AbstractSet):
@@ -395,8 +478,11 @@ class SplayTree(MutableSet[T], Reversible[T]):
         return len(self) == len(other) and self <= other
 
     def __hash__(self) -> int:
+        """Return hash (not supported)."""
         raise NotImplementedError
 
     def __repr__(self) -> str:
+        """Return representation of the tree."""
         elements = list(self)
         return f"{self.__class__.__name__}({elements!r})"
+
