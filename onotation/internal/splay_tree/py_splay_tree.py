@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
+from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Self, cast
 
 
 T = TypeVar("T")
 
 
-@dataclass
+@dataclass(slots=True)
 class Node(Generic[T]):
     """The splay tree node."""
 
@@ -78,7 +79,10 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     def __contains__(self, element: object, /) -> bool:
         """Check whether element exists."""
-        return self.find(element) is not None
+        try:
+            return self._find_node(element) is not None
+        except TypeError:
+            return False
 
     def __iter__(self) -> Iterator[T]:
         """Iterate in ascending order."""
@@ -199,11 +203,6 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
         return None
 
-    def find(self, element: object, /) -> T | None:
-        """Find element."""
-        node = self._find_node(element)
-        return node.value if node is not None else None
-
     def add(self, element: T, /) -> None:
         """Insert element into tree."""
         if self._root is None:
@@ -285,81 +284,6 @@ class SplayTree(MutableSet[T], Reversible[T]):
         with suppress(KeyError):
             self.remove(element)
 
-    def minimum(self) -> T:
-        """Return minimum element."""
-        if self._root is None:
-            msg = "tree is empty"
-            raise KeyError(msg)
-
-        node = self._root.leftmost
-        self._splay(node)
-        return node.value
-
-    def maximum(self) -> T:
-        """Return maximum element."""
-        if self._root is None:
-            msg = "tree is empty"
-            raise KeyError(msg)
-
-        node = self._root.rightmost
-        self._splay(node)
-        return node.value
-
-    def split(self, element: T, /) -> tuple[SplayTree[T], SplayTree[T]]:
-        """Split tree into <= element and > element."""
-        left_tree = SplayTree[T]()
-        right_tree = SplayTree[T]()
-
-        if self._root is None:
-            return left_tree, right_tree
-
-        self._find_node(element)
-
-        if self._root is None:
-            return left_tree, right_tree
-
-        root = self._root
-
-        if root.value <= element:  # type: ignore[operator]
-            left_tree._root = root
-            right_tree._root = root.right
-            if right_tree._root:
-                right_tree._root.parent = None
-            root.right = None
-        else:
-            right_tree._root = root
-            left_tree._root = root.left
-            if left_tree._root:
-                left_tree._root.parent = None
-            root.left = None
-
-        left_tree._size = len(left_tree)
-        right_tree._size = len(right_tree)
-
-        return left_tree, right_tree
-
-    @classmethod
-    def join(
-        cls,
-        left: SplayTree[T],
-        right: SplayTree[T],
-    ) -> SplayTree[T]:
-        """Join two trees (all elements in left <= all elements in right)."""
-        if left._root is None:
-            return right
-        if right._root is None:
-            return left
-
-        maximum = left._root.rightmost
-        left._splay(maximum)
-
-        maximum.right = right._root
-        if right._root:
-            right._root.parent = maximum
-
-        left._size += right._size
-        return left
-
     def pop(self) -> T:
         """Remove and return minimum element."""
         if self._root is None:
@@ -371,54 +295,108 @@ class SplayTree(MutableSet[T], Reversible[T]):
         self.remove(value)
         return value
 
-    def height(self) -> int:
-        """Return height of the tree."""
-        raise NotImplementedError
+    def isdisjoint(self, other: Iterable[object], /) -> bool:
+        """Return True if set has no common elements with other."""
+        return all(element not in self for element in other)
 
-    def is_empty(self) -> bool:
-        """Check whether tree is empty."""
-        raise NotImplementedError
+    def __le__(self, other: AbstractSet[object], /) -> bool:
+        """Subset test."""
+        return all(element in other for element in self)
 
-    def inorder(self) -> Iterator[T]:
-        """Iterate over tree in inorder traversal."""
-        raise NotImplementedError
+    def __lt__(self, other: AbstractSet[object], /) -> bool:
+        """Proper subset test."""
+        return self <= other and any(element not in self for element in other)
 
-    def preorder(self) -> Iterator[T]:
-        """Iterate over tree in preorder traversal."""
-        raise NotImplementedError
+    def __ge__(self, other: AbstractSet[object], /) -> bool:
+        """Superset test."""
+        return all(element in self for element in other)
 
-    def postorder(self) -> Iterator[T]:
-        """Iterate over tree in postorder traversal."""
-        raise NotImplementedError
+    def __gt__(self, other: AbstractSet[object], /) -> bool:
+        """Proper superset test."""
+        return self >= other and any(element not in other for element in self)
 
-    def levelorder(self) -> Iterator[T]:
-        """Iterate over tree in level-order traversal."""
-        raise NotImplementedError
+    def __or__(self, other: AbstractSet[object], /) -> MutableSet[T]:
+        if not isinstance(other, SplayTree):
+            return set(self) | set(cast(Iterable[T], other))
+        result = SplayTree(self)
+        for elem in other:
+            result.add(elem)
+        return result
 
-    def min(self) -> T:
-        """Return minimum element."""
-        raise NotImplementedError
+    def __and__(self, other: AbstractSet[object], /) -> SplayTree[T]:
+        result: SplayTree[T]
+        if not isinstance(other, SplayTree):
+            result = SplayTree()
+            for elem in self:
+                if elem in other:
+                    result.add(elem)
+        else:
+            result = SplayTree()
+            for elem in self:
+                if elem in other:
+                    result.add(elem)
+        return result
 
-    def max(self) -> T:
-        """Return maximum element."""
-        raise NotImplementedError
+    def __sub__(self, other: AbstractSet[object], /) -> SplayTree[T]:
+        result: SplayTree[T]
+        if not isinstance(other, SplayTree):
+            result = SplayTree()
+            for elem in self:
+                if elem not in other:
+                    result.add(elem)
+        else:
+            result = SplayTree()
+            for elem in self:
+                if elem not in other:
+                    result.add(elem)
+        return result
 
-    def successor(self, element: T) -> T | None:
-        """Return successor of element."""
-        raise NotImplementedError
+    def __xor__(self, other: AbstractSet[object], /) -> MutableSet[T]:
+        if not isinstance(other, SplayTree):
+            return set(self) ^ set(cast(Iterable[T], other))
+        result: SplayTree[T] = SplayTree()
+        for elem in self:
+            if elem not in other:
+                result.add(elem)
+        for elem in other:
+            if elem not in self:
+                result.add(elem)
+        return result
 
-    def predecessor(self, element: T) -> T | None:
-        """Return predecessor of element."""
-        raise NotImplementedError
+    def __ior__(self, other: AbstractSet[object], /) -> Self:
+        for elem in cast(Iterable[T], other):
+            self.add(elem)
+        return self
 
-    def contains(self, element: T) -> bool:
-        """Check whether tree contains element."""
-        raise NotImplementedError
+    def __iand__(self, other: AbstractSet[object], /) -> Self:
+        to_remove = [elem for elem in self if elem not in other]
+        for elem in to_remove:
+            self.discard(elem)
+        return self
 
-    def to_list(self) -> list[T]:
-        """Convert tree to sorted list."""
+    def __isub__(self, other: AbstractSet[object], /) -> Self:
+        for elem in other:
+            self.discard(elem)  # type: ignore[arg-type]
+        return self
+
+    def __ixor__(self, other: AbstractSet[object], /) -> Self:
+        for elem in cast(Iterable[T], other):
+            if elem in self:
+                self.remove(elem)
+            else:
+                self.add(elem)
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, AbstractSet):
+            return NotImplemented
+        return len(self) == len(other) and self <= other
+
+    def __hash__(self) -> int:
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Return representation."""
-        return f"{self.__class__.__name__}({list(self)!r})"
+        elements = list(self)
+        return f"{self.__class__.__name__}({elements!r})"
