@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import random
 
-from collections.abc import Callable, Iterable, Iterator, MutableSequence, Reversible
-from typing import Any, TypeVar, overload
+from collections.abc import Callable, Iterable, Iterator, MutableSequence
+from typing import Any, Self, TypeVar, overload
 
 
 T = TypeVar("T")
 
 
-class CartesianTree(MutableSequence[T], Reversible[T]):
+class CartesianTree(MutableSequence[T]):
     """Cartesian tree with implicit key (Treap).
 
     Data structure that acts like a list (supports O(log(n)) split/merge operations)
@@ -45,6 +45,14 @@ class CartesianTree(MutableSequence[T], Reversible[T]):
         :class:`int`
             Length.
         """
+        raise NotImplementedError
+
+    def __contains__(self, item: object, /) -> bool:
+        """Return wheter item is in the tree or not."""
+        raise NotImplementedError
+
+    def __iadd__(self, other: Iterable[T], /) -> Self:
+        """Extend the tree by appending elements from other."""
         raise NotImplementedError
 
     @overload
