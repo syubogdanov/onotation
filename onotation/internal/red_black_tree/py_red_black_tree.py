@@ -11,7 +11,7 @@ T = TypeVar("T")
 Q = TypeVar("Q")
 
 
-@dataclass
+@dataclass(slots=True)
 class Node(Generic[T]):
     """The RBT node."""
 
