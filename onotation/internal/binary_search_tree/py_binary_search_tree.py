@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Generic, Self, TypeVar, assert_never, overload
+from typing import Generic, Self, TypeVar, overload
 
 
 T = TypeVar("T")
@@ -434,7 +434,8 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
 
         successor = node.successor
         if successor is None:
-            assert_never(successor)
+            detail = "'successor' is 'None'"
+            raise RuntimeError(detail)
 
         node.value = successor.value
 
