@@ -162,7 +162,7 @@ class CartesianTree(MutableSequence[T]):
             items = list(value)
             indices = range(*index.indices(len(self)))
             if len(items) != len(indices):
-                detail = "Length mismatch between slice and value"
+                detail = f"attempt to assign sequence of size {len(items)} to slice of size {len(indices)}"
                 raise ValueError(detail)
 
             for i, v in zip(indices, items, strict=True):
@@ -245,7 +245,7 @@ class CartesianTree(MutableSequence[T]):
             if v == value:
                 del self[i]
                 return
-        detail = f"{value!r} not in CartesianTree"
+        detail = f"attemp to remove an element which is not on in the CartesianTree"
         raise ValueError(detail)
 
     def clear(self) -> None:
@@ -310,7 +310,7 @@ class CartesianTree(MutableSequence[T]):
             if self[i] == value:
                 return i
 
-        detail = f"{value!r} is not in CartesianTree"
+        detail = f"attemp to find missing element"
         raise ValueError(detail)
 
     def count(self, value: T, /) -> int:
@@ -329,4 +329,4 @@ class CartesianTree(MutableSequence[T]):
 
     def __hash__(self) -> int:
         """CartesianTree is mutable and therefore not hashable."""
-        raise NotImplementedError
+        raise TypeError("unhashable type: 'CartesianTree'")
