@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 
-from collections.abc import Callable, Iterable, Iterator, MutableSequence, Reversible
+from collections.abc import Callable, Iterable, Iterator, MutableSequence
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar, overload
 
@@ -19,7 +19,7 @@ class Node(Generic[T]):
     size: int = 1
     left: Node[T] | None = field(default=None)
     right: Node[T] | None = field(default=None)
-    parent: Node[T] | None = field(default=None, repr=False)
+    parent: Node[T] | None = field(default=None)
 
     def update_size(self) -> None:
         """Recalculate subtree size."""
@@ -31,7 +31,7 @@ def _get_size(node: Node[T] | None) -> int:
     return node.size if node is not None else 0
 
 
-class CartesianTree(MutableSequence[T], Reversible[T], Generic[T]):
+class CartesianTree(MutableSequence[T]):
     """Implicit Cartesian Tree (Treap) — list with O(log n) split/merge."""
 
     __slots__ = ("_random", "_root")
@@ -211,7 +211,7 @@ class CartesianTree(MutableSequence[T], Reversible[T], Generic[T]):
     def insert(self, index: int, value: T, /) -> None:
         """Insert value before index."""
         if index < 0:
-            index += len(self)
+            index += len(self) + 1
         if not 0 <= index <= len(self):
             raise IndexError
 
@@ -300,11 +300,16 @@ class CartesianTree(MutableSequence[T], Reversible[T], Generic[T]):
 
     def index(self, value: T, start: int = 0, stop: int = -1, /) -> int:
         """Return first index of value."""
+        length = len(self)
         if stop < 0:
             stop = len(self)
-        for i in range(max(start, 0), min(stop, len(self))):
+
+        start = max(0, start)
+        stop = min(stop, length)
+        for i in range(start, stop):
             if self[i] == value:
                 return i
+
         detail = f"{value!r} is not in CartesianTree"
         raise ValueError(detail)
 
@@ -316,9 +321,12 @@ class CartesianTree(MutableSequence[T], Reversible[T], Generic[T]):
         """Return self == other."""
         if not isinstance(other, CartesianTree):
             return NotImplemented
-        return len(self) == len(other) and all(a == b for a, b in zip(self, other, strict=True))
+
+        if len(self) != len(other):
+            return False
+
+        return all(a == b for a, b in zip(self, other, strict=True))
 
     def __hash__(self) -> int:
         """CartesianTree is mutable and therefore not hashable."""
-        detail = "CartesianTree is mutable and not hashable"
-        raise TypeError(detail)
+        raise NotImplementedError
