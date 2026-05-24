@@ -182,4 +182,4 @@ class TestBinarySearchTreeLen:
         """Test length after removing elements."""
         bst = BinarySearchTree([1, 2, 3])
         bst.remove(2)
-        assert len(bst) == 3
+        assert len(bst) == 2
