@@ -108,7 +108,7 @@ class AVLTree(MutableSet[T], Reversible[T]):
         node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
 
     def _get_balance(self, node: Node[T]) -> int:
-        """Return ... (TODO)."""
+        """Return balance factor of the node (left height - right height)."""
         return self._get_height(node.left) - self._get_height(node.right)
 
     def _rotate_right(self, y: Node[T]) -> Node[T]:
@@ -148,7 +148,10 @@ class AVLTree(MutableSet[T], Reversible[T]):
         return y
 
     def _balance(self, node: Node[T]) -> Node[T]:
-        """TODO."""
+        """Balance the node and return new root.
+
+        Performs rotations if balance factor is outside [-1, 1].
+        """
         self._update_height(node)
         balance = self._get_balance(node)
 
@@ -181,7 +184,8 @@ class AVLTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        return self._find_node(element) is not None  # type: ignore[arg-type]
+        node = self._find_node(element)  # type: ignore[arg-type]
+        return node is not None
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -561,7 +565,7 @@ class AVLTree(MutableSet[T], Reversible[T]):
             :obj:`True` if equal, otherwise :obj:`False`.
         """
         if not isinstance(other, AbstractSet):
-            return False
+            return NotImplemented
 
         return self <= other <= self
 
