@@ -116,7 +116,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         """Find node with the given element."""
         node = self._root
         while node and node.value != element:
-            node = node.left if node.value < element else node.right  # type: ignore[operator]
+            node = node.left if element < node.value else node.right  # type: ignore[operator]
 
         return node
 
