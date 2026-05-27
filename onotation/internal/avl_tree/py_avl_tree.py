@@ -44,7 +44,7 @@ class Node(Generic[T]):
             return self.right.leftmost
 
         current = self
-        while current.parent and current.parent.left is current:
+        while current.parent and current.parent.right is current:
             current = current.parent
 
         return current.parent
@@ -56,7 +56,7 @@ class Node(Generic[T]):
             return self.left.rightmost
 
         current = self
-        while current.parent and current.parent.right is current:
+        while current.parent and current.parent.left is current:
             current = current.parent
 
         return current.parent
