@@ -1,6 +1,6 @@
 """Tests for CartesianTree implementation."""
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 
 from onotation.internal.cartesian_tree.py_cartesian_tree import CartesianTree
 
