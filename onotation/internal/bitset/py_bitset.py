@@ -62,7 +62,7 @@ class Bitset(MutableSet[int], Reversible[int]):
             :obj:`True` if present, otherwise :obj:`False`.
         """
         if not isinstance(element, int):
-            raise TypeError(f"Bitset elements must be integers")
+            return False
         index = element // BITS_PER_BLOCK
         if index >= len(self._blocks):
             return False
@@ -383,6 +383,9 @@ class Bitset(MutableSet[int], Reversible[int]):
         element : int
             Element.
         """
+        if not isinstance(element, int):
+            msg = "Bitset elements must be integers"
+            raise TypeError(msg)
         index = element // BITS_PER_BLOCK
         self._reserve(index + 1)
         bit = element % BITS_PER_BLOCK
@@ -396,6 +399,9 @@ class Bitset(MutableSet[int], Reversible[int]):
         element : int
             Element.
         """
+        if not isinstance(element, int):
+            msg = "Bitset elements must be integers"
+            raise TypeError(msg)
         index = element // BITS_PER_BLOCK
         if index >= len(self._blocks):
             raise KeyError(element)
@@ -413,6 +419,9 @@ class Bitset(MutableSet[int], Reversible[int]):
         element : int
             Element.
         """
+        if not isinstance(element, int):
+            msg = "Bitset elements must be integers"
+            raise TypeError(msg)
         with suppress(KeyError):
             self.remove(element)
 
