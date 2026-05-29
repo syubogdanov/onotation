@@ -2,15 +2,91 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableSet, Reversible
 from collections.abc import Set as AbstractSet
-from typing import Self, TypeVar, overload
+from contextlib import suppress
+from dataclasses import dataclass
+from typing import Generic, Self, TypeVar, overload
 
 
 T = TypeVar("T")
 Q = TypeVar("Q")
 
 
+@dataclass(slots=True)
+class Node(Generic[T]):
+    """The RBT node."""
+
+    value: T
+    red_flg: bool = True
+    parent: Node[T] | None = None
+    left: Node[T] | None = None
+    right: Node[T] | None = None
+
+    @property
+    def grandparent(self) -> Node[T] | None:
+        """Return the grandparent of the node."""
+        if self.parent is None:
+            return None
+        return self.parent.parent
+
+    @property
+    def sibling(self) -> Node[T] | None:
+        """Return the sibling of the node."""
+        if self.parent is None:
+            return None
+        if self is self.parent.left:
+            return self.parent.right
+        return self.parent.left
+
+    @property
+    def uncle(self) -> Node[T] | None:
+        """Return the uncle of the node."""
+        if self.parent is None:
+            return None
+        return self.parent.sibling
+
+    @property
+    def leftmost(self) -> Node[T]:
+        """Return the leftmost node in the subtree."""
+        node = self
+        while node.left:
+            node = node.left
+        return node
+
+    @property
+    def rightmost(self) -> Node[T]:
+        """Return the rightmost node in the subtree."""
+        node = self
+        while node.right:
+            node = node.right
+        return node
+
+    @property
+    def successor(self) -> Node[T] | None:
+        """Return the in-order successor."""
+        if self.right:
+            return self.right.leftmost
+
+        current = self
+        while current.parent and current.parent.right is current:
+            current = current.parent
+        return current.parent
+
+    @property
+    def predecessor(self) -> Node[T] | None:
+        """Return the in-order predecessor."""
+        if self.left:
+            return self.left.rightmost
+
+        current = self
+        while current.parent and current.parent.left is current:
+            current = current.parent
+        return current.parent
+
+
 class RedBlackTree(MutableSet[T], Reversible[T]):
     """The red-black tree."""
+
+    __slots__ = ("_root", "_size")
 
     def __init__(self, iterable: Iterable[T] = (), /) -> None:
         """Initialize the object.
@@ -20,7 +96,11 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         iterable : Iterable[T]
             Iterable.
         """
-        raise NotImplementedError
+        self._root: Node[T] | None = None
+        self._size: int = 0
+
+        for element in iterable:
+            self.add(element)
 
     def __len__(self) -> int:
         """Return the number of elements in set (cardinality).
@@ -30,7 +110,15 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`int`
             Length.
         """
-        raise NotImplementedError
+        return self._size
+
+    def _find_node(self, element: T) -> Node[T] | None:
+        """Find node with the given element."""
+        node = self._root
+        while node and node.value != element:
+            node = node.left if element < node.value else node.right  # type: ignore[operator]
+
+        return node
 
     def __contains__(self, element: object, /) -> bool:
         """Test ``element`` for membership in the set.
@@ -45,7 +133,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if present, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return self._find_node(element) is not None  # type: ignore[arg-type]
 
     def isdisjoint(self, other: Iterable[object], /) -> bool:
         """Return ``True`` if the set has no elements in common with ``other``.
@@ -62,7 +150,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if disjoint, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return all(element not in self for element in other)
 
     def __le__(self, other: AbstractSet[object], /) -> bool:
         """Test whether every element in the set is in ``other``.
@@ -77,7 +165,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if subset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return all(element in other for element in self)
 
     def __lt__(self, other: AbstractSet[object], /) -> bool:
         """Test whether the set is a proper subset of ``other``.
@@ -92,7 +180,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if proper subset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return self <= other and other != self
 
     def __ge__(self, other: AbstractSet[object], /) -> bool:
         """Test whether every element in ``other`` is in the set.
@@ -107,7 +195,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if superset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return all(element in self for element in other)
 
     def __gt__(self, other: AbstractSet[object], /) -> bool:
         """Test whether the set is a proper superset of ``other``.
@@ -122,7 +210,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if proper superset, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        return self <= other and self != other
 
     @overload
     def __or__(self, other: RedBlackTree[Q], /) -> RedBlackTree[T | Q]: ...
@@ -143,7 +231,15 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        raise NotImplementedError
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
+
+        for element in self:
+            result.add(element)
+
+        for element in other:  # type: ignore[assignment]
+            result.add(element)
+
+        return result
 
     def __and__(self, other: AbstractSet[object], /) -> RedBlackTree[T]:
         """Return a new set with elements common to the set and ``other``.
@@ -158,7 +254,13 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         RedBlackTree[T]
             Red-black tree.
         """
-        raise NotImplementedError
+        result: RedBlackTree[T] = RedBlackTree()
+
+        for element in result:
+            if element in other:
+                result.add(element)
+
+        return result
 
     def __sub__(self, other: AbstractSet[object], /) -> RedBlackTree[T]:
         """Return a new set with elements in the set that are not in ``other``.
@@ -173,7 +275,13 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         RedBlackTree[T]
             Red-black tree.
         """
-        raise NotImplementedError
+        result: RedBlackTree[T] = RedBlackTree()
+
+        for element in self:
+            if element not in other:
+                result.add(element)
+
+        return result
 
     @overload
     def __xor__(self, other: RedBlackTree[Q], /) -> RedBlackTree[T | Q]: ...
@@ -194,7 +302,18 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        raise NotImplementedError
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
+
+        for element in self:
+            result.add(element)
+
+        for element in other:  # type: ignore[assignment]
+            if element in self:
+                result.discard(element)
+            else:
+                result.add(element)
+
+        return result
 
     def __ior__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
         """Update the set, adding elements from ``other``.
@@ -209,7 +328,10 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         Self
             self.
         """
-        raise NotImplementedError
+        for element in other:
+            self.add(element)
+
+        return self
 
     def __iand__(self, other: AbstractSet[object], /) -> Self:
         """Update the set, keeping only elements found in it and ``other``.
@@ -224,7 +346,11 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         Self
             self.
         """
-        raise NotImplementedError
+        to_remove = [element for element in self if element not in other]
+        for element in to_remove:
+            self.discard(element)
+
+        return self
 
     def __isub__(self, other: AbstractSet[object], /) -> Self:
         """Update the set, removing elements found in ``other``.
@@ -239,7 +365,11 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         Self
             self.
         """
-        raise NotImplementedError
+        to_remove = [element for element in self if element in other]
+        for element in to_remove:
+            self.discard(element)
+
+        return self
 
     def __ixor__(self, other: AbstractSet[T], /) -> Self:  # type: ignore[misc, override]
         """Update the set, keeping only elements found in either set, but not in both.
@@ -254,7 +384,102 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         Self
             self.
         """
-        raise NotImplementedError
+        to_remove = [element for element in self if element in other]
+        to_add = [element for element in other if element not in self]
+
+        for element in to_remove:
+            self.discard(element)
+
+        for element in to_add:
+            self.add(element)
+
+        return self
+
+    def _rotate_left(self, node: Node[T]) -> None:
+        """Left rotate around node."""
+        if right_child := node.right:
+            node.right = right_child.left
+            if right_child.left:
+                right_child.left.parent = node
+
+            right_child.parent = node.parent
+
+            if not node.parent:
+                self._root = right_child
+            elif node is node.parent.left:
+                node.parent.left = right_child
+            else:
+                node.parent.right = right_child
+
+            right_child.left = node
+            node.parent = right_child
+
+    def _rotate_right(self, node: Node[T]) -> None:
+        """Right rotate around node."""
+        if left_child := node.left:
+            node.left = left_child.right
+            if left_child.right:
+                left_child.right.parent = node
+
+            left_child.parent = node.parent
+
+            if not node.parent:
+                self._root = left_child
+            elif node is node.parent.left:
+                node.parent.left = left_child
+            else:
+                node.parent.right = left_child
+
+            left_child.right = node
+            node.parent = left_child
+
+    def _fix_insert(self, node: Node[T]) -> None:
+        """Fix red-black properties after insertion."""
+        if not node:
+            return
+
+        if not node.parent:
+            node.red_flg = False
+            return
+
+        if not node.parent.red_flg:
+            return
+
+        parent = node.parent
+        grandparent = parent.parent
+        uncle = node.uncle
+
+        if uncle and uncle.red_flg:
+            self._recolor_insert(parent, uncle, grandparent)
+            return
+
+        if grandparent:
+            self._rotate_insert(parent, node, grandparent)
+
+    def _recolor_insert(self, parent: Node[T], uncle: Node[T], grandparent: Node[T] | None) -> None:
+        """Recolor nodes when uncle is red."""
+        parent.red_flg = False
+        if grandparent:
+            grandparent.red_flg = True
+        uncle.red_flg = False
+        if grandparent:
+            self._fix_insert(grandparent)
+
+    def _rotate_insert(self, parent: Node[T], node: Node[T], grandparent: Node[T]) -> None:
+        """Rotate nodes when uncle is black."""
+        if parent is grandparent.left:
+            if node is parent.right:
+                self._rotate_left(parent)
+                node, parent = parent, node
+            self._rotate_right(grandparent)
+        else:
+            if node is parent.left:
+                self._rotate_right(parent)
+                node, parent = parent, node
+            self._rotate_left(grandparent)
+
+        parent.red_flg = False
+        grandparent.red_flg = True
 
     def add(self, element: T, /) -> None:
         """Add ``element`` to the set.
@@ -264,7 +489,50 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        raise NotImplementedError
+        if not self._root:
+            self._root = Node(element, red_flg=False)
+            self._size = 1
+            return
+
+        current = self._root
+        parent = None
+
+        while current:
+            parent = current
+            if element < current.value:  #  type: ignore[operator]
+                current = current.left  # type: ignore[assignment]
+            elif current.value < element:  # type: ignore[operator]
+                current = current.right  # type: ignore[assignment]
+            else:
+                return
+
+        if parent:
+            new_node = Node(element, red_flg=True, parent=parent)
+
+            if element < parent.value:  # type: ignore[operator]
+                parent.left = new_node
+            else:
+                parent.right = new_node
+
+            self._size += 1
+            self._fix_insert(new_node)
+
+    def _remove_node_with_one_or_zero_child(self, node: Node[T]) -> None:
+        """Remove node that has one or less children."""
+        if child := (node.left if node.left else node.right):
+            child.parent = node.parent
+            if not node.parent:
+                self._root = child
+            elif node.parent.left is node:
+                node.parent.left = child
+            else:
+                node.parent.right = child
+
+    def _remove_node_with_two_children(self, node: Node[T]) -> None:
+        """Remove node that has two children."""
+        if successor := node.successor:
+            node.value = successor.value
+            self._remove_node_with_one_or_zero_child(successor)
 
     def remove(self, element: T, /) -> None:
         """Remove ``element`` from the set.
@@ -274,7 +542,15 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        raise NotImplementedError
+        if not (node := self._find_node(element)):
+            raise KeyError(element)
+
+        if not node.left or not node.right:
+            self._remove_node_with_one_or_zero_child(node)
+        else:
+            self._remove_node_with_two_children(node)
+
+        self._size -= 1
 
     def discard(self, element: T, /) -> None:
         """Remove ``element`` from the set if it is present.
@@ -284,7 +560,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         element : T
             Element.
         """
-        raise NotImplementedError
+        with suppress(KeyError):
+            self.remove(element)
 
     def pop(self) -> T:
         """Remove and return an arbitrary element from the set.
@@ -294,11 +571,18 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         T
             Element.
         """
-        raise NotImplementedError
+        if not self._root:
+            detail = f"pop from an empty {self.__class__.__name__}"
+            raise KeyError(detail)
+
+        value = self._root.leftmost.value
+        self.remove(value)
+        return value
 
     def clear(self) -> None:
         """Remove all elements from the set."""
-        raise NotImplementedError
+        self._root = None
+        self._size = 0
 
     def __eq__(self, other: object) -> bool:
         """Test whether the set equals to ``other``.
@@ -313,10 +597,13 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         :class:`bool`
             :obj:`True` if equal, otherwise :obj:`False`.
         """
-        raise NotImplementedError
+        if not isinstance(other, AbstractSet):
+            return NotImplemented
+
+        return self <= other <= self
 
     def __hash__(self) -> int:
-        """Return the hash.
+        """Return the hash (not defined).
 
         Returns
         -------
@@ -341,7 +628,11 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         -----
         * An ascending order is guaranteed.
         """
-        raise NotImplementedError
+        if self._root:
+            current: Node[T] | None = self._root.leftmost
+            while current:
+                yield current.value
+                current = current.successor
 
     def __reversed__(self) -> Iterator[T]:
         """Return a reverse iterator.
@@ -355,4 +646,8 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         -----
         * A descending order is guaranteed.
         """
-        raise NotImplementedError
+        if self._root:
+            current: Node[T] | None = self._root.rightmost
+            while current:
+                yield current.value
+                current = current.predecessor
