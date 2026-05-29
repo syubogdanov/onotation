@@ -384,8 +384,8 @@ class Bitset(MutableSet[int], Reversible[int]):
             Element.
         """
         if not isinstance(element, int):
-            msg = "Bitset elements must be integers"
-            raise TypeError(msg)
+            message = "Bitset elements must be integers"
+            raise TypeError(message)
         index = element // BITS_PER_BLOCK
         self._reserve(index + 1)
         bit = element % BITS_PER_BLOCK
@@ -400,8 +400,8 @@ class Bitset(MutableSet[int], Reversible[int]):
             Element.
         """
         if not isinstance(element, int):
-            msg = "Bitset elements must be integers"
-            raise TypeError(msg)
+            message = "Bitset elements must be integers"
+            raise TypeError(message)
         index = element // BITS_PER_BLOCK
         if index >= len(self._blocks):
             raise KeyError(element)
@@ -420,8 +420,8 @@ class Bitset(MutableSet[int], Reversible[int]):
             Element.
         """
         if not isinstance(element, int):
-            msg = "Bitset elements must be integers"
-            raise TypeError(msg)
+            message = "Bitset elements must be integers"
+            raise TypeError(message)
         with suppress(KeyError):
             self.remove(element)
 
@@ -434,8 +434,8 @@ class Bitset(MutableSet[int], Reversible[int]):
             Element.
         """
         if not self._blocks:
-            msg = "pop from an empty set"
-            raise KeyError(msg)
+            message = "pop from an empty set"
+            raise KeyError(message)
         for index, block in enumerate(self._blocks):
             if block:
                 bit_pos = 0
@@ -444,8 +444,8 @@ class Bitset(MutableSet[int], Reversible[int]):
                 value = index * BITS_PER_BLOCK + bit_pos
                 self.remove(value)
                 return value
-        unreachable_msg = "unreachable"
-        assert_never(unreachable_msg)  # type: ignore[arg-type]
+        unreachable_message = "unreachable"
+        assert_never(unreachable_message)  # type: ignore[arg-type]
 
     def clear(self) -> None:
         """Remove all elements from the set."""
