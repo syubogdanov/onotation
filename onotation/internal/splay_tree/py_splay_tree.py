@@ -190,13 +190,16 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
         while node:
             last = node
-            if element < node.value:      # type: ignore[operator]
-                node = node.left
-            elif node.value < element:    # type: ignore[operator]
-                node = node.right
-            else:
-                self._splay(node)
-                return node
+            try:
+                if element < node.value:      # type: ignore[operator]
+                    node = node.left
+                elif node.value < element:    # type: ignore[operator]
+                    node = node.right
+                else:
+                    self._splay(node)
+                    return node
+            except TypeError:
+                return None
 
         if last:
             self._splay(last)
@@ -205,14 +208,18 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     def find(self, element: object, /) -> T | None:
         """Return element if found, else None."""
-        node = self._find_node(element)
-        return node.value if node is not None else None
+        try:
+            node = self._find_node(element)
+        except TypeError:
+            return None
+        else:
+            return node.value if node is not None else None
 
     def minimum(self) -> T:
         """Return minimum element."""
         if self._root is None:
-            msg = "tree is empty"
-            raise KeyError(msg)
+            message = "tree is empty"
+            raise KeyError(message)
         node = self._root.leftmost
         self._splay(node)
         return node.value
@@ -220,8 +227,8 @@ class SplayTree(MutableSet[T], Reversible[T]):
     def maximum(self) -> T:
         """Return maximum element."""
         if self._root is None:
-            msg = "tree is empty"
-            raise KeyError(msg)
+            message = "tree is empty"
+            raise KeyError(message)
         node = self._root.rightmost
         self._splay(node)
         return node.value
@@ -233,6 +240,10 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
         if self._root is None:
             return left_tree, right_tree
+
+        if not isinstance(pivot, type(self._root.value)):
+            message = f"Incompatible type: {type(pivot).__name__}"
+            raise TypeError(message)
 
         self._find_node(pivot)
 
@@ -279,6 +290,10 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     def add(self, element: T, /) -> None:
         """Insert element into tree."""
+        if self._root is not None and not isinstance(element, type(self._root.value)):
+            message = f"Incompatible type: {type(element).__name__}"
+            raise TypeError(message)
+
         if self._root is None:
             self._root = Node(element)
             self._size = 1
@@ -299,8 +314,8 @@ class SplayTree(MutableSet[T], Reversible[T]):
                 return
 
         if parent is None:
-            msg = "parent should not be None"
-            raise RuntimeError(msg)
+            message = "parent should not be None"
+            raise RuntimeError(message)
 
         new_node = Node(element, parent=parent)
 
@@ -326,6 +341,10 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     def remove(self, element: T, /) -> None:
         """Remove element from tree."""
+        if self._root is not None and not isinstance(element, type(self._root.value)):
+            message = f"Incompatible type: {type(element).__name__}"
+            raise TypeError(message)
+
         node = self._find_node(element)
         if node is None:
             raise KeyError(element)
@@ -355,14 +374,18 @@ class SplayTree(MutableSet[T], Reversible[T]):
 
     def discard(self, element: T, /) -> None:
         """Remove element if exists."""
+        if self._root is not None and not isinstance(element, type(self._root.value)):
+            message = f"Incompatible type: {type(element).__name__}"
+            raise TypeError(message)
+
         with suppress(KeyError):
             self.remove(element)
 
     def pop(self) -> T:
         """Remove and return minimum element."""
         if self._root is None:
-            msg = f"pop from empty {self.__class__.__name__}"
-            raise KeyError(msg)
+            message = "pop from an empty tree"
+            raise KeyError(message)
 
         node = self._root.leftmost
         value = node.value
