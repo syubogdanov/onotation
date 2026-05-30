@@ -13,7 +13,7 @@ class BloomFilter(Container[T], Generic[T]):
 
     __slots__ = ("_blocks", "_k", "_m", "_n")
 
-    def __init__(self, m: int, k: int, iterable: Iterable[T] = (), /) -> None:
+    def __init__(self, m: int, k: int, iterable: Iterable[T] = ()) -> None:
         """Initialize the object.
 
         Parameters
@@ -110,7 +110,7 @@ class BloomFilter(Container[T], Generic[T]):
         try:
             indices = self._hash_indices(element)
         except TypeError as err:
-            message = f"BloomFilter elements must be hashable, got {type(element).__name__}"
+            message = "BloomFilter elements must be hashable"
             raise TypeError(message) from err
 
         for idx in indices:
