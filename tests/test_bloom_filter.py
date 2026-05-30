@@ -97,7 +97,7 @@ class TestBloomFilterAdd:
         filter_: BloomFilter[list[int]] = BloomFilter(100, 3)
 
         with pytest.raises(TypeError, match="BloomFilter elements must be hashable"):
-            filter_.add([1, 2])  # type: ignore[arg-type]
+            filter_.add([1, 2])
 
 
 class TestBloomFilterClear:
@@ -134,5 +134,5 @@ class TestBloomFilterContains:
         """Unhashable or incompatible type safely returns False."""
         filter_: BloomFilter[int] = BloomFilter(100, 3, [1, 2, 3])
 
-        assert [1, 2] not in filter_  # type: ignore[operator]
-        assert "string" not in filter_
+        assert [1, 2] not in filter_  # type: ignore[comparison-overlap]
+        assert "string" not in filter_  # type: ignore[comparison-overlap]
