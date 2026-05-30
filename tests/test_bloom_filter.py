@@ -134,5 +134,5 @@ class TestBloomFilterContains:
         """Unhashable or incompatible type safely returns False."""
         filter_: BloomFilter[int] = BloomFilter(100, 3, [1, 2, 3])
 
-        assert [1, 2] not in filter_  # type: ignore[comparison-overlap]
-        assert "string" not in filter_  # type: ignore[comparison-overlap]
+        assert [1, 2] not in filter_  # type: ignore[operator]
+        assert "string" not in filter_
