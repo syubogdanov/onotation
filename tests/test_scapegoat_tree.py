@@ -171,7 +171,7 @@ class TestScapegoatTreeContains:
         """Incompatible type safely returns False."""
         tree: ScapegoatTree[int] = ScapegoatTree([1, 2, 3])
 
-        assert "string" not in tree
+        assert "string" not in tree  # type: ignore[comparison-overlap]
 
 
 class TestScapegoatTreeIter:
