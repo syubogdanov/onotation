@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Container, Iterable
 from typing import Generic, TypeVar
 
+
 BITS_PER_BLOCK = 64
 T = TypeVar("T")
 
@@ -35,9 +36,11 @@ class BloomFilter(Container[T], Generic[T]):
         self._k: int = k
         self._n: int = 0
 
-        # Вычисляем необходимое количество 64-битных блоков
         num_blocks = (m + BITS_PER_BLOCK - 1) // BITS_PER_BLOCK
         self._blocks: list[int] = [0] * num_blocks
+
+        for element in iterable:
+            self.add(element)
 
     @property
     def m(self) -> int:
@@ -61,13 +64,11 @@ class BloomFilter(Container[T], Generic[T]):
 
     def _hash_indices(self, element: T) -> list[int]:
         """Generate k deterministic bit indices for the given element."""
-        # Используем встроенный hash() с солью для симуляции двух базовых хешей
         h1 = hash(element)
         h2 = hash((h1, element))
 
         indices: list[int] = []
         for i in range(self._k):
-            # Формула Кирша-Митценмахера для генерации k хешей на базе двух
             idx = (h1 + i * h2) % self._m
             indices.append(idx)
         return indices
@@ -85,7 +86,6 @@ class BloomFilter(Container[T], Generic[T]):
         bool
             True if the element might be in the filter, False if it is definitely not.
         """
-        # Безопасный перехват несовместимых типов (возвращаем False вместо падения)
         try:
             indices = self._hash_indices(element)  # type: ignore[arg-type]
         except TypeError:
@@ -107,9 +107,6 @@ class BloomFilter(Container[T], Generic[T]):
         element : T
             Element.
         """
-        # Строгая проверка типа на входе (модифицирующий метод)
-        # Так как BloomFilter — это Generic[T], мы не можем сделать точный isinstance(element, T),
-        # но проверяем базовую возможность хеширования объекта.
         try:
             indices = self._hash_indices(element)
         except TypeError as err:
