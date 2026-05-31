@@ -1,7 +1,6 @@
 from collections.abc import Iterable, Iterator
 from typing import Self
 
-
 class Trie:
     def __init__(self, iterable: Iterable[str] = ()) -> None: ...
 
