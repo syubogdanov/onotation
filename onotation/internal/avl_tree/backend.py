@@ -3,15 +3,14 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from contextlib import suppress
 
+from onotation.internal.avl_tree.py_avl_tree import AVLTree as PyAVLTree
 
 c_avl_tree = None
 
 with suppress(ImportError, OSError):
-    from onotation.internal.avl_tree import c_avl_tree
+    from onotation.internal.avl_tree.c_avl_tree import AVLTree as CAVLTree
 
-from onotation.internal.avl_tree.py_avl_tree import AVLTree as PyAVLTree
-
-print(f"🔧 Using: {'C extension' if c_avl_tree else 'Python fallback'}")  # ← ДОБАВЬ ЭТО
+    c_avl_tree = CAVLTree
 
 
 class AVLTree:
@@ -22,7 +21,7 @@ class AVLTree:
     def __init__(self, iterable: Iterable[int] = (), /) -> None:
         """Initialize tree with optional iterable."""
         if c_avl_tree is not None:
-            self._impl = c_avl_tree.AVLTree()
+            self._impl = c_avl_tree()
         else:
             self._impl = PyAVLTree()
 

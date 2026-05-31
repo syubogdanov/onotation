@@ -8,6 +8,7 @@ EXTENSIONS = [
         name="onotation.internal.avl_tree.c_avl_tree",
         sources=["onotation/internal/avl_tree/c_avl_tree.c"],
         include_dirs=[sysconfig.get_path('include')],
+        extra_compile_args=["-03"] if sysconfig.get_platform().startswith("linux") else [],
     ),
 ]
 

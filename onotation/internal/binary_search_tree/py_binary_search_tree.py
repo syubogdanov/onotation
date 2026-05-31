@@ -203,7 +203,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result = BinarySearchTree[T | Q]() if isinstance(other, BinarySearchTree) else set[T | Q]()
+        result = (
+            BinarySearchTree[T | Q]()
+            if isinstance(other, BinarySearchTree)
+            else set[T | Q]()
+        )
 
         for element in self:
             result.add(element)
@@ -274,7 +278,11 @@ class BinarySearchTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result = BinarySearchTree[T | Q]() if isinstance(other, BinarySearchTree) else set[T | Q]()
+        result = (
+            BinarySearchTree[T | Q]()
+            if isinstance(other, BinarySearchTree)
+            else set[T | Q]()
+        )
 
         for element in self:
             result.add(element)
