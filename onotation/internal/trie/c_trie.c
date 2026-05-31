@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 #define PY_SSIZE_T_CLEAN
+#define TRIE_MAX_DEPTH 4096
 
 #include <Python.h>
 #include <stdlib.h>
@@ -8,7 +9,7 @@
 #include <string.h>
 
 typedef struct TrieNode {
-    int terminal;
+    bool terminal;
     struct TrieNode* children[256];
 } TrieNode;
 
@@ -19,6 +20,7 @@ typedef struct {
 } TrieObject;
 
 static PyTypeObject TrieType;
+static PyObject* Trie_to_set(TrieObject* self);
 
 static TrieNode* create_node(void) {
     TrieNode* node = (TrieNode*)calloc(1, sizeof(TrieNode));
@@ -152,35 +154,34 @@ static void collect_words(
     char* buffer,
     int depth,
     PyObject* list
-) {
-    if (!node) {
-        return;
-    }
+)
+{
+    if (!node) return;
 
     if (node->terminal) {
         buffer[depth] = '\0';
 
-        PyObject* str =
-            PyUnicode_FromString(buffer);
-
+        PyObject* str = PyUnicode_FromString(buffer);
         if (str) {
             PyList_Append(list, str);
             Py_DECREF(str);
         }
     }
 
+    unsigned char children[256];
+    int count = 0;
+
     for (int i = 0; i < 256; i++) {
         if (node->children[i]) {
-
-            buffer[depth] = (char)i;
-
-            collect_words(
-                node->children[i],
-                buffer,
-                depth + 1,
-                list
-            );
+            children[count++] = (unsigned char)i;
         }
+    }
+
+    for (int j = count - 1; j >= 0; j--) {
+        int i = children[j];
+
+        buffer[depth] = (char)i;
+        collect_words(node->children[i], buffer, depth + 1, list);
     }
 }
 
@@ -189,35 +190,34 @@ static void collect_words_reverse(
     char* buffer,
     int depth,
     PyObject* list
-) {
-    if (!node) {
-        return;
-    }
+)
+{
+    if (!node) return;
 
     if (node->terminal) {
         buffer[depth] = '\0';
 
-        PyObject* str =
-            PyUnicode_FromString(buffer);
-
+        PyObject* str = PyUnicode_FromString(buffer);
         if (str) {
             PyList_Append(list, str);
             Py_DECREF(str);
         }
     }
 
-    for (int i = 255; i >= 0; i--) {
+    unsigned char children[256];
+    int count = 0;
+
+    for (int i = 0; i < 256; i++) {
         if (node->children[i]) {
-
-            buffer[depth] = (char)i;
-
-            collect_words_reverse(
-                node->children[i],
-                buffer,
-                depth + 1,
-                list
-            );
+            children[count++] = (unsigned char)i;
         }
+    }
+
+    for (int j = 0; j < count; j++) {
+        int i = children[j];
+
+        buffer[depth] = (char)i;
+        collect_words_reverse(node->children[i], buffer, depth + 1, list);
     }
 }
 static PyObject* Trie_new(
@@ -405,44 +405,27 @@ static PyObject* Trie_contains(
 
     Py_RETURN_FALSE;
 }
-static PyObject* Trie_clear(
-    TrieObject* self,
-    PyObject* Py_UNUSED(args)
-) {
-    free_trie(
-        self->root
-    );
+static PyObject* Trie_clear(TrieObject* self, PyObject* Py_UNUSED(args))
+{
+    if (self->root) {
+        free_trie(self->root);
+    }
 
-    self->root =
-        create_node();
-
+    self->root = create_node();
     self->size = 0;
 
     Py_RETURN_NONE;
 }
-static PyObject* Trie_iter(
-    TrieObject* self,
-    PyObject* Py_UNUSED(args)
-) {
-    PyObject* list =
-        PyList_New(0);
+static PyObject* Trie_iter(TrieObject* self, PyObject* Py_UNUSED(args))
+{
+    PyObject* list = PyList_New(0);
+    if (!list) return NULL;
 
-    if (!list) {
-        return NULL;
-    }
+    char buffer[TRIE_MAX_DEPTH];
 
-    char buffer[1024];
+    collect_words(self->root, buffer, 0, list);
 
-    collect_words(
-        self->root,
-        buffer,
-        0,
-        list
-    );
-
-    PyObject* iter =
-        PyObject_GetIter(list);
-
+    PyObject* iter = PyObject_GetIter(list);
     Py_DECREF(list);
 
     return iter;
@@ -458,7 +441,7 @@ static PyObject* Trie_reversed(
         return NULL;
     }
 
-    char buffer[1024];
+    char buffer[TRIE_MAX_DEPTH];
 
     collect_words_reverse(
         self->root,
@@ -508,116 +491,286 @@ static bool find_first_word_recursive(
     return false;
 }
 
-static PyObject* Trie_pop(
-    TrieObject* self,
-    PyObject* Py_UNUSED(args)
-) {
+static PyObject* Trie_pop(TrieObject* self, PyObject* Py_UNUSED(args))
+{
     if (self->size == 0) {
-
-        PyErr_SetString(
-            PyExc_KeyError,
-            "pop from an empty trie"
-        );
-
+        PyErr_SetString(PyExc_KeyError, "pop from an empty trie");
         return NULL;
     }
 
-    char buffer[1024];
+    PyObject* iter = PyObject_GetIter((PyObject*)self);
+    if (!iter) return NULL;
 
-    if (
-        !find_first_word_recursive(
-            self->root,
-            buffer,
-            0
-        )
-    ) {
-        PyErr_SetString(
-            PyExc_RuntimeError,
-            "trie corrupted"
-        );
+    PyObject* first = PyIter_Next(iter);
+    Py_DECREF(iter);
 
+    if (!first) {
+        if (!PyErr_Occurred()) {
+            PyErr_SetString(PyExc_RuntimeError, "trie corrupted");
+        }
         return NULL;
     }
 
-    remove_word(
-        self->root,
-        buffer
-    );
+    if (!PyUnicode_Check(first)) {
+        Py_DECREF(first);
+        PyErr_SetString(PyExc_TypeError, "invalid trie element");
+        return NULL;
+    }
 
+    const char* word = PyUnicode_AsUTF8(first);
+
+    char copy[1024];
+    snprintf(copy, sizeof(copy), "%s", word);
+
+    Py_DECREF(first);
+
+    remove_word(self->root, copy);
     self->size--;
 
-    return PyUnicode_FromString(
-        buffer
-    );
+    return PyUnicode_FromString(copy);
 }
-static PyObject* Trie_eq(
-    TrieObject* self,
-    TrieObject* other
-) {
-    if (
-        !PyObject_TypeCheck(
-            (PyObject*)other,
-            &TrieType
-        )
-    ) {
+static PyObject* Trie_eq(PyObject* self, PyObject* other)
+{
+    if (!PyObject_TypeCheck(other, &TrieType)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
 
-    if (
-        self->size != other->size
-    ) {
+    TrieObject* a = (TrieObject*)self;
+    TrieObject* b = (TrieObject*)other;
+
+    if (a->size != b->size) {
         Py_RETURN_FALSE;
     }
 
-    PyObject* left =
-        PyList_New(0);
+    PyObject* set_a = Trie_to_set(a);
+    if (!set_a) return NULL;
 
-    PyObject* right =
-        PyList_New(0);
-
-    if (!left || !right) {
-        Py_XDECREF(left);
-        Py_XDECREF(right);
+    PyObject* set_b = Trie_to_set(b);
+    if (!set_b) {
+        Py_DECREF(set_a);
         return NULL;
     }
 
-    char buffer1[1024];
-    char buffer2[1024];
+    int res = PyObject_RichCompareBool(set_a, set_b, Py_EQ);
 
-    collect_words(
-        self->root,
-        buffer1,
-        0,
-        left
-    );
+    Py_DECREF(set_a);
+    Py_DECREF(set_b);
 
-    collect_words(
-        other->root,
-        buffer2,
-        0,
-        right
-    );
+    if (res < 0) return NULL;
+    return res ? Py_RETURN_TRUE : Py_RETURN_FALSE;
+}
 
-    int equal =
-        PyObject_RichCompareBool(
-            left,
-            right,
-            Py_EQ
+static PyObject* Trie_to_set(TrieObject* self)
+{
+    PyObject* list = PyList_New(0);
+    if (!list) return NULL;
+
+    char buffer[TRIE_MAX_DEPTH];
+
+    collect_words(self->root, buffer, 0, list);
+
+    PyObject* set = PySet_New(list);
+
+    Py_DECREF(list);
+    return set;
+}
+
+static PyObject* Trie_from_set(
+    PyObject* set_obj
+) {
+    PyObject* trie_obj =
+        PyObject_CallObject(
+            (PyObject*)&TrieType,
+            NULL
         );
 
-    Py_DECREF(left);
-    Py_DECREF(right);
-
-    if (equal < 0) {
+    if (!trie_obj) {
         return NULL;
     }
 
-    if (equal) {
-        Py_RETURN_TRUE;
+    TrieObject* trie =
+        (TrieObject*)trie_obj;
+
+    PyObject* iterator =
+        PyObject_GetIter(set_obj);
+
+    if (!iterator) {
+        Py_DECREF(trie_obj);
+        return NULL;
     }
 
-    Py_RETURN_FALSE;
+    PyObject* item;
+
+    while ((item = PyIter_Next(iterator))) {
+
+        const char* word =
+            PyUnicode_AsUTF8(item);
+
+        if (!word) {
+            Py_DECREF(item);
+            Py_DECREF(iterator);
+            Py_DECREF(trie_obj);
+            return NULL;
+        }
+
+        if (
+            insert_word(
+                trie->root,
+                word
+            )
+        ) {
+            trie->size++;
+        }
+
+        Py_DECREF(item);
+    }
+
+    Py_DECREF(iterator);
+
+    return trie_obj;
 }
+static PyObject* Trie_isdisjoint(TrieObject* self, PyObject* other)
+{
+    PyObject* iter = PyObject_GetIter(other);
+    if (!iter) return NULL;
+
+    PyObject* item;
+
+    while ((item = PyIter_Next(iter))) {
+
+        if (!PyUnicode_Check(item)) {
+            Py_DECREF(item);
+            Py_DECREF(iter);
+            PyErr_SetString(PyExc_TypeError, "expected strings");
+            return NULL;
+        }
+
+        const char* word = PyUnicode_AsUTF8(item);
+
+        if (word && search_word(self->root, word)) {
+            Py_DECREF(item);
+            Py_DECREF(iter);
+            Py_RETURN_FALSE;
+        }
+
+        Py_DECREF(item);
+    }
+
+    Py_DECREF(iter);
+
+    if (PyErr_Occurred()) return NULL;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject* Trie_le(TrieObject* self, PyObject* other)
+{
+    PyObject* iter = PyObject_GetIter((PyObject*)self);
+    if (!iter) return NULL;
+
+    PyObject* item;
+
+    while ((item = PyIter_Next(iter))) {
+
+        if (!PyUnicode_Check(item)) {
+            Py_DECREF(item);
+            Py_DECREF(iter);
+            PyErr_SetString(PyExc_TypeError, "Trie contains non-string");
+            return NULL;
+        }
+
+        int contains = PySequence_Contains(other, item);
+        if (contains < 0) {
+            Py_DECREF(item);
+            Py_DECREF(iter);
+            return NULL;
+        }
+
+        if (contains == 0) {
+            Py_DECREF(item);
+            Py_DECREF(iter);
+            Py_RETURN_FALSE;
+        }
+
+        Py_DECREF(item);
+    }
+
+    Py_DECREF(iter);
+
+    if (PyErr_Occurred()) return NULL;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject* Trie_lt(
+    TrieObject* self,
+    PyObject* other
+) {
+    PyObject* self_set =
+        Trie_to_set(self);
+
+    if (!self_set) {
+        return NULL;
+    }
+
+    PyObject* result =
+        PyObject_RichCompare(
+            self_set,
+            other,
+            Py_LT
+        );
+
+    Py_DECREF(self_set);
+
+    return result;
+}
+
+static PyObject* Trie_ge(
+    TrieObject* self,
+    PyObject* other
+) {
+    PyObject* self_set =
+        Trie_to_set(self);
+
+    if (!self_set) {
+        return NULL;
+    }
+
+    PyObject* result =
+        PyObject_RichCompare(
+            self_set,
+            other,
+            Py_GE
+        );
+
+    Py_DECREF(self_set);
+
+    return result;
+}
+
+static PyObject* Trie_gt(
+    TrieObject* self,
+    PyObject* other
+) {
+    PyObject* self_set =
+        Trie_to_set(self);
+
+    if (!self_set) {
+        return NULL;
+    }
+
+    PyObject* result =
+        PyObject_RichCompare(
+            self_set,
+            other,
+            Py_GT
+        );
+
+    Py_DECREF(self_set);
+
+    return result;
+}
+
 static PyMethodDef Trie_methods[] = {
     {
         "add",
@@ -678,6 +831,36 @@ static PyMethodDef Trie_methods[] = {
         (PyCFunction)Trie_eq,
         METH_O,
         "Compare"
+    },
+    {
+        "isdisjoint",
+        (PyCFunction)Trie_isdisjoint,
+        METH_O,
+        "Is disjoint"
+    },
+    {
+        "__le__",
+        (PyCFunction)Trie_le,
+        METH_O,
+        "Subset"
+    },
+    {
+        "__lt__",
+        (PyCFunction)Trie_lt,
+        METH_O,
+        "Proper subset"
+    },
+    {
+        "__ge__",
+        (PyCFunction)Trie_ge,
+        METH_O,
+        "Superset"
+    },
+    {
+        "__gt__",
+        (PyCFunction)Trie_gt,
+        METH_O,
+        "Proper superset"
     },
     {
         NULL,
