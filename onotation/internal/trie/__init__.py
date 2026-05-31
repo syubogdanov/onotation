@@ -1,4 +1,4 @@
-from onotation.internal.trie.py_trie import Trie
+from onotation.internal.trie.backend import Trie
 
 
 __all__ = ["Trie"]
