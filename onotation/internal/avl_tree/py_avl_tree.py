@@ -444,7 +444,10 @@ class AVLTree(MutableSet[T], Reversible[T]):
         return self
 
     def _add(
-        self, node: Node[T] | None, value: T, parent: Node[T] | None = None
+        self,
+        node: Node[T] | None,
+        value: T,
+        parent: Node[T] | None = None,
     ) -> Node[T]:
         """Recursive add with balancing."""
         if node is None:

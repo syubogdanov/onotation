@@ -231,9 +231,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result = (
-            RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
-        )
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
 
         for element in self:
             result.add(element)
@@ -304,9 +302,7 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
         MutableSet[T | Q]
             Set.
         """
-        result = (
-            RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
-        )
+        result = RedBlackTree[T | Q]() if isinstance(other, RedBlackTree) else set[T | Q]()
 
         for element in self:
             result.add(element)
@@ -461,7 +457,10 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             self._rotate_insert(parent, node, grandparent)
 
     def _recolor_insert(
-        self, parent: Node[T], uncle: Node[T], grandparent: Node[T] | None
+        self,
+        parent: Node[T],
+        uncle: Node[T],
+        grandparent: Node[T] | None,
     ) -> None:
         """Recolor nodes when uncle is red."""
         parent.red_flg = False
@@ -472,7 +471,10 @@ class RedBlackTree(MutableSet[T], Reversible[T]):
             self._fix_insert(grandparent)
 
     def _rotate_insert(
-        self, parent: Node[T], node: Node[T], grandparent: Node[T]
+        self,
+        parent: Node[T],
+        node: Node[T],
+        grandparent: Node[T],
     ) -> None:
         """Rotate nodes when uncle is black."""
         if parent is grandparent.left:

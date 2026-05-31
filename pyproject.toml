@@ -1,16 +1,18 @@
 [build-system]
-requires = ["setuptools>=70.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "onotation"
 version = "0.0.0"
 description = "Because O(n²) should be a choice, not a surprise!"
-license = {text = "MIT"}
-authors = [{name = "Sergei Y. Bogdanov", email = "syubogdanov@outlook.com"}]
-maintainers = [{name = "Sergei Y. Bogdanov", email = "syubogdanov@outlook.com"}]
+license = "MIT"
+authors = ["Sergei Y. Bogdanov <syubogdanov@outlook.com>"]
+maintainers = ["Sergei Y. Bogdanov <syubogdanov@outlook.com>"]
 readme = "README.md"
-requires-python = ">=3.11"
+homepage = "https://github.com/syubogdanov/onotation"
+repository = "https://github.com/syubogdanov/onotation"
+documentation = "https://onotation.readthedocs.io"
 keywords = [
     "algorithm",
     "c",
@@ -36,34 +38,22 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-[project.urls]
-homepage = "https://github.com/syubogdanov/onotation"
-repository = "https://github.com/syubogdanov/onotation"
-documentation = "https://onotation.readthedocs.io"
+[tool.poetry.dependencies]
+python = ">=3.11"
 
-[project.optional-dependencies]
-lint = [
-    "black>=25.9",
-    "mypy>=1.18",
-    "ruff>=0.14",
-]
-test = [
-    "pytest>=8.4",
-]
-
-[tool.setuptools]
-packages = ["onotation"]
-
-[tool.setuptools.package-data]
-onotation = ["py.typed"]
+[tool.poetry.group.lint]
+optional = true
 
 [tool.poetry.group.lint.dependencies]
-black = ">=25.9"
-mypy = ">=1.18"
-ruff = ">=0.14"
+black = "^25.9"
+mypy = "^1.18"
+ruff = "^0.14"
+
+[tool.poetry.group.test]
+optional = true
 
 [tool.poetry.group.test.dependencies]
-pytest = ">=8.4"
+pytest = "^8.4"
 
 [tool.black]
 line-length = 100

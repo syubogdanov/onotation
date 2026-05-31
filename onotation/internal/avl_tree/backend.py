@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
 from contextlib import suppress
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from collections.abs import Iterable, Iterator
 
 from onotation.internal.avl_tree.py_avl_tree import AVLTree as PyAVLTree
+
 
 c_avl_tree = None
 
