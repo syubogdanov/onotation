@@ -1,6 +1,6 @@
 import pytest
 
-from onotation.internal.avl_tree.py_avl_tree import AVLTree
+from onotation.internal.avl_tree.backend import AVLTree
 
 
 class TestAVLTreeLen:

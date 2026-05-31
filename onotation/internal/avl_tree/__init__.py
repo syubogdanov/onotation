@@ -1,4 +1,4 @@
-from onotation.internal.avl_tree.py_avl_tree import AVLTree
+from onotation.internal.avl_tree.backend import AVLTree
 
 
 __all__ = ["AVLTree"]
