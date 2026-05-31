@@ -1,13 +1,10 @@
-from setuptools import Extension, setup
+from setuptools import setup
+from build import build
 
+setup_kwargs = {
+    "name": "onotation",
+}
 
-trie_extension = Extension(
-    "onotation.internal.trie.c_trie",
-    sources=[
-        "onotation/internal/trie/c_trie.c",
-    ],
-)
+build(setup_kwargs)
 
-setup(
-    ext_modules=[trie_extension],
-)
+setup(**setup_kwargs)
