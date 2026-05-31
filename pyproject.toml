@@ -71,6 +71,10 @@ python_version = "3.11"
 strict_equality = true
 warn_unused_ignores = true
 
+[[tool.mypy.overrides]]
+module = "onotation.internal.trie.c_trie"
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
