@@ -307,8 +307,8 @@ class TestTrieHash:
     """Tests for Trie hashing behavior."""
 
     def test__hash__raises(self) -> None:
-        """Test hash raises TypeError."""
+        """Test hash raises NotImplementedError."""
         trie = Trie(["abc"])
 
-        with pytest.raises(TypeError):
+        with pytest.raises(NotImplementedError):
             hash(trie)
