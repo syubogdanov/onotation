@@ -53,7 +53,7 @@ class AVLTree:
         """Compare two trees for equality."""
         if not isinstance(other, AVLTree):
             return NotImplemented
-        return self._impl == other._impl
+        return list(self) == list(other)
 
     def __hash__(self) -> int:
         """Hash not defined for mutable tree."""

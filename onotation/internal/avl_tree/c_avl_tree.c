@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-
 #include <Python.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -25,9 +24,7 @@ static Node* create_node(long value) {
     if (!node) return NULL;
     node->value = value;
     node->height = 1;
-    node->parent = NULL;
-    node->right = NULL;
-    node->left = NULL;
+    node->parent = node->right = node->left = NULL;
     return node;
 }
 
@@ -137,7 +134,14 @@ static void inorder_collect(Node* node, PyObject* list) {
     inorder_collect(node->right, list);
 }
 
-/* Python bindings */
+static void reverse_inorder_collect(Node* node, PyObject* list) {
+    if (!node) return;
+    reverse_inorder_collect(node->right, list);
+    PyList_Append(list, PyLong_FromLong(node->value));
+    reverse_inorder_collect(node->left, list);
+}
+
+/* === Python methods === */
 static PyObject* AVLTree_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
     AVLTreeObject* self = (AVLTreeObject*)type->tp_alloc(type, 0);
     if (self) { self->root = NULL; self->size = 0; }
@@ -152,8 +156,7 @@ static void AVLTree_dealloc(AVLTreeObject* self) {
 static Py_ssize_t AVLTree_len(AVLTreeObject* self) { return self->size; }
 
 static PyObject* AVLTree_contains(AVLTreeObject* self, PyObject* args) {
-    long v;
-    if (!PyArg_ParseTuple(args, "l", &v)) return NULL;
+    long v; if (!PyArg_ParseTuple(args, "l", &v)) return NULL;
     return PyBool_FromLong(search_tree(self->root, v));
 }
 
@@ -169,7 +172,10 @@ static PyObject* AVLTree_remove(AVLTreeObject* self, PyObject* args) {
     long v; if (!PyArg_ParseTuple(args, "l", &v)) return NULL;
     int del = 0;
     self->root = delete_node(self->root, v, NULL, &del);
-    if (!del) { PyErr_SetString(PyExc_ValueError, "value not in tree"); return NULL; }
+    if (!del) {
+        PyErr_SetString(PyExc_KeyError, "value not in tree");
+        return NULL;
+    }
     self->size--;
     Py_RETURN_NONE;
 }
@@ -183,7 +189,10 @@ static PyObject* AVLTree_discard(AVLTreeObject* self, PyObject* args) {
 }
 
 static PyObject* AVLTree_pop(AVLTreeObject* self, PyObject* Py_UNUSED(args)) {
-    if (self->size == 0) { PyErr_SetString(PyExc_KeyError, "pop from an empty tree"); return NULL; }
+    if (self->size == 0) {
+        PyErr_SetString(PyExc_KeyError, "pop from an empty tree");
+        return NULL;
+    }
     Node* minn = find_min(self->root);
     long v = minn->value;
     int del = 0;
@@ -198,6 +207,39 @@ static PyObject* AVLTree_clear(AVLTreeObject* self, PyObject* Py_UNUSED(args)) {
     Py_RETURN_NONE;
 }
 
+static PyObject* AVLTree_iter(AVLTreeObject* self) {
+    PyObject* list = PyList_New(0);
+    if (!list) return NULL;
+    inorder_collect(self->root, list);
+    PyObject* it = PyObject_GetIter(list);
+    Py_DECREF(list);
+    return it;
+}
+
+static PyObject* AVLTree_reversed(AVLTreeObject* self) {
+    PyObject* list = PyList_New(0);
+    if (!list) return NULL;
+    reverse_inorder_collect(self->root, list);
+    PyObject* it = PyObject_GetIter(list);
+    Py_DECREF(list);
+    return it;
+}
+
+static PyObject* AVLTree_eq(AVLTreeObject* self, PyObject* other) {
+    if (!PyObject_TypeCheck(other, &AVLTreeType))
+        Py_RETURN_NOTIMPLEMENTED;
+
+    AVLTreeObject* o = (AVLTreeObject*)other;
+    if (self->size != o->size)
+        Py_RETURN_FALSE;
+
+    PyObject* l1 = PyList_New(0); inorder_collect(self->root, l1);
+    PyObject* l2 = PyList_New(0); inorder_collect(o->root, l2);
+    int eq = PyObject_RichCompareBool(l1, l2, Py_EQ) == 1;
+    Py_DECREF(l1); Py_DECREF(l2);
+    return PyBool_FromLong(eq);
+}
+
 static PySequenceMethods AVLTree_as_sequence = { (lenfunc)AVLTree_len };
 
 static PyMethodDef methods[] = {
@@ -207,17 +249,11 @@ static PyMethodDef methods[] = {
     {"pop", (PyCFunction)AVLTree_pop, METH_NOARGS},
     {"clear", (PyCFunction)AVLTree_clear, METH_NOARGS},
     {"__contains__", (PyCFunction)AVLTree_contains, METH_VARARGS},
-    {NULL}
+    {"__iter__", (PyCFunction)AVLTree_iter, METH_NOARGS},
+    {"__reversed__", (PyCFunction)AVLTree_reversed, METH_NOARGS},
+    {"__eq__", (PyCFunction)AVLTree_eq, METH_O},
+    {NULL, NULL, 0, NULL}
 };
-
-static PyObject* AVLTree_iter(AVLTreeObject* self) {
-    PyObject* list = PyList_New(0);
-    if (!list) return NULL;
-    inorder_collect(self->root, list);
-    PyObject* iter = PyObject_GetIter(list);
-    Py_DECREF(list);
-    return iter;
-}
 
 static PyTypeObject AVLTreeType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -226,9 +262,10 @@ static PyTypeObject AVLTreeType = {
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = AVLTree_new,
     .tp_dealloc = (destructor)AVLTree_dealloc,
-    .tp_iter = (getiterfunc)AVLTree_iter,
     .tp_methods = methods,
     .tp_as_sequence = &AVLTree_as_sequence,
+    .tp_iter = (getiterfunc)AVLTree_iter,  // для __iter__
+    // .tp_reverse — такого поля нет, __reversed__ уже в tp_methods
 };
 
 static struct PyModuleDef moduledef = {
