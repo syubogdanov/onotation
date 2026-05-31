@@ -22,32 +22,31 @@ class Trie:
     __hash__ = None
 
     def __init__(self, iterable: Iterable[str] = (), /) -> None:
-        """Initialize trie."""
+        """Initialize trie from iterable of strings."""
         impl_cls = CTrie if CTrie is not None else PyTrie
-
         self._impl = impl_cls()
 
         for item in iterable:
             self._impl.add(item)
 
     def __len__(self) -> int:
-        """Return trie size."""
+        """Return number of elements in trie."""
         return len(self._impl)
 
     def __contains__(self, item: object) -> bool:
-        """Check membership."""
+        """Check if item is in trie."""
         return item in self._impl
 
     def __iter__(self) -> Iterator[str]:
-        """Return iterator."""
+        """Iterate over trie elements."""
         return iter(self._impl)
 
     def __reversed__(self) -> Iterator[str]:
-        """Return reverse iterator."""
+        """Iterate over trie elements in reverse order."""
         return reversed(self._impl)
 
     def __eq__(self, other: object) -> bool:
-        """Compare tries."""
+        """Compare trie equality."""
         if isinstance(other, Trie):
             return self._impl == other._impl
         return self._impl == other
@@ -61,61 +60,60 @@ class Trie:
         return repr(self._impl)
 
     def add(self, element: str) -> None:
-        """Add element."""
+        """Add element to trie."""
         self._impl.add(element)
 
     def remove(self, element: str) -> None:
-        """Remove element."""
+        """Remove element from trie (raises if missing)."""
         self._impl.remove(element)
 
     def discard(self, element: str) -> None:
-        """Discard element."""
+        """Remove element if present."""
         self._impl.discard(element)
 
     def pop(self) -> str:
-        """Pop element."""
+        """Remove and return arbitrary element."""
         return self._impl.pop()
 
     def clear(self) -> None:
-        """Clear trie."""
+        """Remove all elements."""
         self._impl.clear()
 
     def isdisjoint(self, other: object) -> bool:
-        """Check disjointness."""
+        """Return True if no elements intersect."""
         return self._impl.isdisjoint(other)
 
     def __le__(self, other: object) -> bool:
-        """Subset check."""
+        """Check subset relation."""
         return self._impl <= other
 
     def __lt__(self, other: object) -> bool:
-        """Proper subset check."""
+        """Check proper subset relation."""
         return self._impl < other
 
     def __ge__(self, other: object) -> bool:
-        """Superset check."""
+        """Check superset relation."""
         return self._impl >= other
 
     def __gt__(self, other: object) -> bool:
-        """Proper superset check."""
+        """Check proper superset relation."""
         return self._impl > other
 
     def __or__(self, other: object) -> object:
-        """Union."""
+        """Return union."""
         return self._impl | other
 
     def __and__(self, other: object) -> object:
-        """Intersection."""
+        """Return intersection."""
         return self._impl & other
 
     def __sub__(self, other: object) -> object:
-        """Difference."""
+        """Return difference."""
         return self._impl - other
 
     def __xor__(self, other: object) -> object:
-        """Symmetric difference."""
+        """Return symmetric difference."""
         return self._impl ^ other
-
 
     def __ior__(self, other: object) -> Self:
         """In-place union."""
@@ -137,13 +135,12 @@ class Trie:
         self._impl ^= other
         return self
 
-
     @property
     def _root(self) -> object:
-        """Return root node."""
+        """Internal root access (debug)."""
         return getattr(self._impl, "_root", None)
 
     @property
     def _size(self) -> int:
-        """Return trie size."""
+        """Return size of trie."""
         return getattr(self._impl, "_size", len(self._impl))
